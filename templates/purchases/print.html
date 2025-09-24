@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Receipt - {{ purchase.invoice_number }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { font-size: 12px; }
+            .container { max-width: 100% !important; }
+        }
+        .receipt-header {
+            border-bottom: 2px solid #dee2e6;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+        }
+        .receipt-footer {
+            border-top: 2px solid #dee2e6;
+            margin-top: 20px;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <!-- Print Button -->
+        <div class="no-print mb-3">
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="bi bi-printer"></i> Print Receipt
+            </button>
+            <button onclick="window.close()" class="btn btn-secondary">
+                <i class="bi bi-x"></i> Close
+            </button>
+        </div>
+
+        <!-- Receipt Header -->
+        <div class="receipt-header text-center">
+            <h2>ALORF HOSPITAL</h2>
+            <h4>Purchase Receipt</h4>
+            <p class="mb-0">Invoice: <strong>{{ purchase.invoice_number }}</strong></p>
+        </div>
+
+        <!-- Purchase Details -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h6>Purchase Information</h6>
+                <table class="table table-sm table-borderless">
+                    <tr>
+                        <td><strong>Purchase ID:</strong></td>
+                        <td>{{ purchase.id }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Date:</strong></td>
+                        <td>{{ purchase.date or purchase.purchase_date }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Purchaser:</strong></td>
+                        <td>{{ purchase.purchaser_name }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6>Supplier Information</h6>
+                {% set supplier = suppliers|selectattr('id', 'equalto', purchase.supplier_id)|first %}
+                <table class="table table-sm table-borderless">
+                    <tr>
+                        <td><strong>Supplier:</strong></td>
+                        <td>{{ supplier.name if supplier else 'Unknown' }}</td>
+                    </tr>
+                    {% if supplier and supplier.contact_person %}
+                    <tr>
+                        <td><strong>Contact:</strong></td>
+                        <td>{{ supplier.contact_person }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if supplier and supplier.phone %}
+                    <tr>
+                        <td><strong>Phone:</strong></td>
+                        <td>{{ supplier.phone }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+
+        <!-- Medicines Table -->
+        <div class="mb-4">
+            <h6>Purchased Medicines</h6>
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Medicine Name</th>
+                        <th>Form/Dosage</th>
+                        <th>Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for medicine_item in purchase.medicines %}
+                    {% set medicine = medicines|selectattr('id', 'equalto', medicine_item.medicine_id)|first %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ medicine.name if medicine else 'Unknown Medicine' }}</td>
+                        <td>{{ medicine.form_dosage if medicine else '-' }}</td>
+                        <td class="text-center">{{ medicine_item.quantity }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">No medicines in this purchase</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <th colspan="3" class="text-end">Total Quantity:</th>
+                        <th class="text-center">
+                            {% set total_qty = purchase.medicines|sum(attribute='quantity') %}
+                            {{ total_qty }}
+                        </th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Notes -->
+        {% if purchase.notes %}
+        <div class="mb-4">
+            <h6>Notes</h6>
+            <p class="border p-3 bg-light">{{ purchase.notes }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Receipt Footer -->
+        <div class="receipt-footer">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0"><strong>Generated on:</strong> {{ current_datetime }}</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p class="mb-0"><strong>Hospital Pharmacy Management System</strong></p>
+                    <small class="text-muted">Developed by Waleed Mohamed</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <script>
+        // Auto-print when page loads (optional)
+        // window.onload = function() { window.print(); }
+    </script>
+</body>
+</html>

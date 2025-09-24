@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+
+{% block title %}Create Transfer - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-plus-circle"></i> Create Inventory Transfer</h1>
+    <a href="{{ url_for('transfers.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Transfers
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-arrow-left-right"></i> Transfer Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="transferForm" novalidate>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="source_store_id" class="form-label">From Store <span class="text-danger">*</span></label>
+                                <select class="form-select" id="source_store_id" name="source_store_id" required>
+                                    <option value="">Select Source Store</option>
+                                    {% for store in stores %}
+                                    <option value="{{ store.id }}">{{ store.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="destination_store_id" class="form-label">To Store <span class="text-danger">*</span></label>
+                                <select class="form-select" id="destination_store_id" name="destination_store_id" required>
+                                    <option value="">Select Destination Store</option>
+                                    {% for store in stores %}
+                                    <option value="{{ store.id }}">{{ store.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="requested_by" class="form-label">Requested By <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="requested_by" name="requested_by"
+                                       placeholder="Enter name of person requesting transfer" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="approved_by" class="form-label">Approved By <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="approved_by" name="approved_by"
+                                       placeholder="Enter name of person approving transfer" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Transfer Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="2"
+                                  placeholder="Optional notes about this transfer..."></textarea>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6><i class="bi bi-capsule"></i> Medicines to Transfer</h6>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addMedicineRow()">
+                            <i class="bi bi-plus"></i> Add Medicine
+                        </button>
+                    </div>
+                    
+                    <div id="medicinesContainer">
+                        <div class="medicine-row mb-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label">Medicine</label>
+                                    <select class="form-select medicine-select" name="medicine_id[]" required>
+                                        <option value="">Select Medicine</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Available Stock</label>
+                                    <input type="text" class="form-control stock-display" readonly placeholder="0">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Quantity</label>
+                                    <input type="number" class="form-control quantity-input" name="quantity[]" 
+                                           min="1" required placeholder="0">
+                                </div>
+                                <div class="col-md-1">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button type="button" class="btn btn-outline-danger w-100" onclick="removeMedicineRow(this)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{{ url_for('transfers.index') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Process Transfer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-info-circle"></i> Transfer Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6>How Transfers Work:</h6>
+                    <ul class="mb-0">
+                        <li>Select source and destination stores</li>
+                        <li>Choose medicines and quantities to transfer</li>
+                        <li>System validates sufficient stock exists</li>
+                        <li>Stock is automatically deducted from source</li>
+                        <li>Stock is automatically added to destination</li>
+                        <li>Transfer record is created for audit trail</li>
+                    </ul>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <h6><i class="bi bi-exclamation-triangle"></i> Important Notes:</h6>
+                    <ul class="mb-0">
+                        <li>Transfers cannot be reversed</li>
+                        <li>Ensure accurate quantities</li>
+                        <li>Verify destination store is correct</li>
+                        <li>Stock levels are updated immediately</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-box"></i> Source Store Inventory</h5>
+            </div>
+            <div class="card-body">
+                <div id="sourceInventory">
+                    <p class="text-muted">Select a source store to view inventory</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let medicineRowCount = 1;
+
+// Load store inventory when source store changes
+document.getElementById('source_store_id').addEventListener('change', function() {
+    const storeId = this.value;
+    const inventoryDiv = document.getElementById('sourceInventory');
+    
+    if (!storeId) {
+        inventoryDiv.innerHTML = '<p class="text-muted">Select a source store to view inventory</p>';
+        updateMedicineOptions([]);
+        return;
+    }
+    
+    inventoryDiv.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm"></div> Loading...</div>';
+    
+    fetch(`/transfers/api/store-inventory/${storeId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                inventoryDiv.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                updateMedicineOptions([]);
+                return;
+            }
+            
+            if (data.length === 0) {
+                inventoryDiv.innerHTML = '<p class="text-muted">No medicines in stock</p>';
+                updateMedicineOptions([]);
+                return;
+            }
+            
+            let html = '<div class="table-responsive"><table class="table table-sm"><thead><tr><th>Medicine</th><th>Stock</th></tr></thead><tbody>';
+            data.forEach(item => {
+                html += `<tr><td>${item.name}</td><td><span class="badge bg-primary">${item.stock}</span></td></tr>`;
+            });
+            html += '</tbody></table></div>';
+            
+            inventoryDiv.innerHTML = html;
+            updateMedicineOptions(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            inventoryDiv.innerHTML = '<div class="alert alert-danger">Error loading inventory</div>';
+            updateMedicineOptions([]);
+        });
+});
+
+function updateMedicineOptions(medicines) {
+    const selects = document.querySelectorAll('.medicine-select');
+    selects.forEach(select => {
+        const currentValue = select.value;
+        select.innerHTML = '<option value="">Select Medicine</option>';
+        
+        medicines.forEach(medicine => {
+            const option = document.createElement('option');
+            option.value = medicine.id;
+            option.textContent = `${medicine.name} (${medicine.stock} available)`;
+            option.dataset.stock = medicine.stock;
+            if (medicine.id === currentValue) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+        
+        // Update stock display if medicine is selected
+        if (select.value) {
+            updateStockDisplay(select);
+        }
+    });
+}
+
+function updateStockDisplay(selectElement) {
+    const row = selectElement.closest('.medicine-row');
+    const stockDisplay = row.querySelector('.stock-display');
+    const quantityInput = row.querySelector('.quantity-input');
+    
+    if (selectElement.value) {
+        const selectedOption = selectElement.selectedOptions[0];
+        const stock = selectedOption.dataset.stock || 0;
+        stockDisplay.value = stock;
+        quantityInput.max = stock;
+    } else {
+        stockDisplay.value = '';
+        quantityInput.max = '';
+    }
+}
+
+function addMedicineRow() {
+    medicineRowCount++;
+    const container = document.getElementById('medicinesContainer');
+    const newRow = document.createElement('div');
+    newRow.className = 'medicine-row mb-3';
+    newRow.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <label class="form-label">Medicine</label>
+                <select class="form-select medicine-select" name="medicine_id[]" required>
+                    <option value="">Select Medicine</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Available Stock</label>
+                <input type="text" class="form-control stock-display" readonly placeholder="0">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Quantity</label>
+                <input type="number" class="form-control quantity-input" name="quantity[]" 
+                       min="1" required placeholder="0">
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">&nbsp;</label>
+                <button type="button" class="btn btn-outline-danger w-100" onclick="removeMedicineRow(this)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(newRow);
+    
+    // Add event listener to new medicine select
+    const newSelect = newRow.querySelector('.medicine-select');
+    newSelect.addEventListener('change', function() {
+        updateStockDisplay(this);
+    });
+    
+    // Update options if source store is selected
+    const sourceStoreId = document.getElementById('source_store_id').value;
+    if (sourceStoreId) {
+        // Trigger update to populate new select
+        document.getElementById('source_store_id').dispatchEvent(new Event('change'));
+    }
+}
+
+function removeMedicineRow(button) {
+    const rows = document.querySelectorAll('.medicine-row');
+    if (rows.length > 1) {
+        button.closest('.medicine-row').remove();
+    } else {
+        alert('At least one medicine row is required.');
+    }
+}
+
+// Add event listeners to existing medicine selects
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.medicine-select').forEach(select => {
+        select.addEventListener('change', function() {
+            updateStockDisplay(this);
+        });
+    });
+    
+    // Form validation
+    document.getElementById('transferForm').addEventListener('submit', function(e) {
+        const sourceStore = document.getElementById('source_store_id').value;
+        const destStore = document.getElementById('destination_store_id').value;
+        
+        if (sourceStore === destStore && sourceStore !== '') {
+            e.preventDefault();
+            alert('Source and destination stores must be different.');
+            return false;
+        }
+        
+        // Validate quantities don't exceed stock
+        const medicineRows = document.querySelectorAll('.medicine-row');
+        for (let row of medicineRows) {
+            const select = row.querySelector('.medicine-select');
+            const quantityInput = row.querySelector('.quantity-input');
+            
+            if (select.value && quantityInput.value) {
+                const stock = parseInt(row.querySelector('.stock-display').value || 0);
+                const quantity = parseInt(quantityInput.value || 0);
+                
+                if (quantity > stock) {
+                    e.preventDefault();
+                    alert(`Quantity (${quantity}) exceeds available stock (${stock}) for ${select.selectedOptions[0].textContent}`);
+                    return false;
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

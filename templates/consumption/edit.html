@@ -1,0 +1,365 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Consumption - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-pencil"></i> Edit Consumption</h1>
+    <a href="{{ url_for('consumption.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Consumption
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-receipt"></i> Edit Consumption Record - ID: {{ consumption.id }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    <!-- Basic Information -->
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="date" class="form-label">Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="date" name="date" value="{{ consumption.date }}" required>
+                                <div class="invalid-feedback">
+                                    Please provide a date.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="department_id" class="form-label">Department <span class="text-danger">*</span></label>
+                                <select class="form-select" id="department_id" name="department_id" required onchange="updateDepartmentStock()">
+                                    <option value="">Select Department</option>
+                                    {% if session.role == 'admin' %}
+                                        {% for department in departments %}
+                                        <option value="{{ department.id }}" {% if department.id == consumption.department_id %}selected{% endif %}>{{ department.name }}</option>
+                                        {% endfor %}
+                                    {% else %}
+                                        {% for department in departments %}
+                                            {% if department.id == session.department_id %}
+                                            <option value="{{ department.id }}" {% if department.id == consumption.department_id %}selected{% endif %}>{{ department.name }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select a department.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="patient_id" class="form-label">Patient <span class="text-danger">*</span></label>
+                                <select class="form-select" id="patient_id" name="patient_id" required>
+                                    <option value="">Select Patient</option>
+                                    {% for patient in patients %}
+                                    <option value="{{ patient.id }}" {% if patient.id == consumption.patient_id %}selected{% endif %}>{{ patient.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select a patient.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="prescribed_by" class="form-label">Prescribed By <span class="text-danger">*</span></label>
+                                <select class="form-select" id="prescribed_by" name="prescribed_by" required>
+                                    <option value="">Select Doctor</option>
+                                    {% for doctor in doctors %}
+                                    <option value="{{ doctor.dr_name }}" {% if doctor.dr_name == consumption.prescribed_by %}selected{% endif %}>
+                                        {{ doctor.dr_name }}
+                                    </option>
+                                    {% endfor %}
+                                    {% if consumption.prescribed_by and consumption.prescribed_by not in doctors|map(attribute='dr_name') %}
+                                    <option value="{{ consumption.prescribed_by }}" selected>{{ consumption.prescribed_by }} (Legacy)</option>
+                                    {% endif %}
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select the prescribing doctor.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Medicines Section -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6><i class="bi bi-capsule"></i> Medicines</h6>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="addMedicineRow()">
+                                <i class="bi bi-plus"></i> Add Medicine
+                            </button>
+                        </div>
+                        
+                        <div id="medicines-container">
+                            <!-- Header Row -->
+                            <div class="row mb-2">
+                                <div class="col-md-6"><strong>Medicine</strong></div>
+                                <div class="col-md-3"><strong>Quantity</strong></div>
+                                <div class="col-md-2"><strong>Stock</strong></div>
+                                <div class="col-md-1"><strong>Action</strong></div>
+                            </div>
+                            
+                            <!-- Existing Medicine Rows -->
+                            {% for medicine_item in consumption.medicines %}
+                            <div class="row mb-2 medicine-row">
+                                <div class="col-md-6">
+                                    <select class="form-select medicine-select" name="medicine_id[]" required onchange="updateAvailableStock(this)">
+                                        <option value="">Select Medicine</option>
+                                        {% for medicine in medicines %}
+                                        <option value="{{ medicine.id }}" 
+                                                {% if medicine.id == medicine_item.medicine_id %}selected{% endif %}
+                                                {% for store in stores %} data-stock-{{ store.department_id }}="{{ store.inventory.get(medicine.id, 0) }}"{% endfor %}>
+                                            {{ medicine.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control quantity-input" name="quantity[]" 
+                                           value="{{ medicine_item.quantity }}" placeholder="Quantity" min="1" required onchange="validateQuantity(this)">
+                                </div>
+                                <div class="col-md-2">
+                                    <span class="form-control-plaintext stock-info text-muted">
+                                        {% if consumption.department_id %}
+                                            {% set medicine = medicines|selectattr('id', 'equalto', medicine_item.medicine_id)|first %}
+                                            {% if medicine %}
+                                                {% set store = stores|selectattr('department_id', 'equalto', consumption.department_id)|first %}
+                                                {% if store %}
+                                                    Available: {{ store.inventory.get(medicine.id, 0) }}
+                                                {% else %}
+                                                    Available: 0
+                                                {% endif %}
+                                            {% else %}
+                                                Available: -
+                                            {% endif %}
+                                        {% else %}
+                                            Available: -
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-outline-danger btn-sm remove-medicine-btn" onclick="removeMedicineRow(this)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Summary -->
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <div class="alert alert-info">
+                                    <strong>Summary:</strong> 
+                                    <span id="total-items">{{ consumption.medicines|length }}</span> items, 
+                                    Total Quantity: <span id="total-quantity">{{ consumption.medicines|sum(attribute='quantity') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                  placeholder="Additional information about the consumption...">{{ consumption.notes }}</textarea>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ url_for('consumption.index') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Update Consumption
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Medicine options for dynamic rows
+const medicineOptions = `
+    <option value="">Select Medicine</option>
+    {% for medicine in medicines %}
+    <option value="{{ medicine.id }}"{% for store in stores %} data-stock-{{ store.department_id }}="{{ store.inventory.get(medicine.id, 0) }}"{% endfor %}>{{ medicine.name }}</option>
+    {% endfor %}
+`;
+
+function updateDepartmentStock() {
+    updateAllMedicineStocks();
+}
+
+function updateAllMedicineStocks() {
+    const departmentSelect = document.getElementById('department_id');
+    const selectedDepartment = departmentSelect.value;
+
+    if (!selectedDepartment) {
+        // Clear all stock displays if no department selected
+        document.querySelectorAll('.stock-info').forEach(stockSpan => {
+            stockSpan.textContent = 'Available: -';
+        });
+        document.querySelectorAll('.quantity-input').forEach(input => {
+            input.max = '';
+        });
+        return;
+    }
+
+    // Update stock info for all medicine rows
+    document.querySelectorAll('.medicine-select').forEach(select => {
+        if (select.value) {
+            updateAvailableStock(select);
+        }
+    });
+}
+
+function updateAvailableStock(selectElement) {
+    const departmentSelect = document.getElementById('department_id');
+    const selectedDepartment = departmentSelect.value;
+    const selectedMedicine = selectElement.value;
+
+    const stockSpan = selectElement.closest('.medicine-row').querySelector('.stock-info');
+    const quantityInput = selectElement.closest('.medicine-row').querySelector('.quantity-input');
+
+    if (selectedMedicine && selectedDepartment) {
+        const stockAttribute = `data-stock-${selectedDepartment}`;
+        const selectedOption = selectElement.querySelector(`option[value="${selectedMedicine}"]`);
+        const stock = parseInt(selectedOption ? selectedOption.getAttribute(stockAttribute) || '0' : '0');
+        stockSpan.textContent = `Available: ${stock}`;
+
+        // Update quantity input max value
+        quantityInput.max = stock;
+
+        // Validate current quantity
+        validateQuantity(quantityInput);
+    } else {
+        stockSpan.textContent = 'Available: -';
+        quantityInput.max = '';
+    }
+}
+
+function validateQuantity(input) {
+    const row = input.closest('.medicine-row');
+    const stockSpan = row.querySelector('.stock-info');
+    const stockText = stockSpan.textContent;
+    const availableStock = parseInt(stockText.replace('Available: ', '')) || 0;
+    const requestedQuantity = parseInt(input.value) || 0;
+    
+    if (requestedQuantity > availableStock) {
+        input.setCustomValidity(`Only ${availableStock} units available`);
+        input.classList.add('is-invalid');
+    } else {
+        input.setCustomValidity('');
+        input.classList.remove('is-invalid');
+    }
+    
+    updateSummary();
+}
+
+function addMedicineRow() {
+    const container = document.getElementById('medicines-container');
+    const newRow = document.createElement('div');
+    newRow.className = 'row mb-2 medicine-row';
+    
+    newRow.innerHTML = `
+        <div class="col-md-6">
+            <select class="form-select medicine-select" name="medicine_id[]" required onchange="updateAvailableStock(this)">
+                ${medicineOptions}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input type="number" class="form-control quantity-input" name="quantity[]" placeholder="Quantity" min="1" required onchange="validateQuantity(this)">
+        </div>
+        <div class="col-md-2">
+            <span class="form-control-plaintext stock-info text-muted">Available: -</span>
+        </div>
+        <div class="col-md-1">
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeMedicineRow(this)">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    `;
+
+    container.appendChild(newRow);
+    updateRemoveButtons();
+    updateSummary();
+}
+
+function removeMedicineRow(button) {
+    const row = button.closest('.medicine-row');
+    row.remove();
+    updateRemoveButtons();
+    updateSummary();
+}
+
+function updateRemoveButtons() {
+    const rows = document.querySelectorAll('.medicine-row');
+    const removeButtons = document.querySelectorAll('.remove-medicine-btn');
+    
+    removeButtons.forEach(btn => {
+        btn.style.display = rows.length > 1 ? 'inline-block' : 'none';
+    });
+}
+
+function updateSummary() {
+    const rows = document.querySelectorAll('.medicine-row');
+    const totalItems = rows.length;
+    let totalQuantity = 0;
+
+    rows.forEach(row => {
+        const quantityInput = row.querySelector('.quantity-input');
+        const quantity = parseInt(quantityInput.value) || 0;
+        totalQuantity += quantity;
+    });
+
+    // Check if summary elements exist before updating
+    const totalItemsElement = document.getElementById('total-items');
+    const totalQuantityElement = document.getElementById('total-quantity');
+
+    if (totalItemsElement) {
+        totalItemsElement.textContent = totalItems;
+    }
+    if (totalQuantityElement) {
+        totalQuantityElement.textContent = totalQuantity;
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Set today's date as default
+    const today = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('date');
+    if (!dateInput.value) {
+        dateInput.value = today;
+    }
+
+    updateRemoveButtons();
+    updateSummary();
+
+    // Update stock information for existing medicines
+    const departmentSelect = document.getElementById('department_id');
+    if (departmentSelect.value) {
+        // Force update all medicine stocks on page load
+        setTimeout(() => {
+            updateAllMedicineStocks();
+        }, 100); // Small delay to ensure DOM is fully ready
+    }
+
+    // Also update stock when any existing medicine selection changes
+    document.querySelectorAll('.medicine-select').forEach(select => {
+        if (select.value) {
+            updateAvailableStock(select);
+        }
+    });
+});
+</script>
+{% endblock %}

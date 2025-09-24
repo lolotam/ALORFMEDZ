@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}Security Settings - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-shield-lock"></i> Security Settings</h1>
+    <a href="{{ url_for('settings.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Settings
+    </a>
+</div>
+
+<!-- Security Overview -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-journal-text fs-1 me-3"></i>
+                    <div>
+                        <h5 class="card-title mb-0">Audit Logs</h5>
+                        <p class="card-text fs-4 mb-0">{{ total_audit_logs }}</p>
+                        <small>Total recorded activities</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-activity fs-1 me-3"></i>
+                    <div>
+                        <h5 class="card-title mb-0">Recent Activity</h5>
+                        <p class="card-text fs-4 mb-0">{{ recent_activities }}</p>
+                        <small>Activities in last 7 days</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-shield-check fs-1 me-3"></i>
+                    <div>
+                        <h5 class="card-title mb-0">Security Status</h5>
+                        <p class="card-text fs-4 mb-0">Active</p>
+                        <small>Monitoring enabled</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Actions -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-journal-text"></i> Audit Logs</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">View and export system activity logs for compliance and monitoring.</p>
+                <div class="btn-group" role="group">
+                    <a href="{{ url_for('settings.audit_logs') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-eye"></i> View Logs
+                    </a>
+                    <a href="{{ url_for('settings.export_audit_logs') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-file-earmark-arrow-down"></i> Export CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Danger Zone -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5><i class="bi bi-exclamation-triangle"></i> Danger Zone</h5>
+            </div>
+            <div class="card-body">
+                <h6 class="text-danger">Data Erasure</h6>
+                <p class="card-text">
+                    <strong>Warning:</strong> This action will permanently delete ALL data from the system,
+                    including medicines, patients, suppliers, departments, stores, purchases, and consumption records.
+                    Only the admin user will be preserved. This action cannot be undone!
+                </p>
+                <button type="button" class="btn btn-danger" onclick="showEraseConfirmation()">
+                    <i class="bi bi-trash"></i> Erase All Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Erase Confirmation Modal -->
+<div class="modal fade" id="eraseConfirmationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> Confirm Data Erasure</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <strong>CRITICAL WARNING:</strong> This action will permanently delete ALL data from the system!
+                </div>
+                <p>To confirm this action, type <strong>ERASE ALL DATA</strong> in the field below:</p>
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="confirmationText" placeholder="Type: ERASE ALL DATA">
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="confirmCheckbox">
+                    <label class="form-check-label" for="confirmCheckbox">
+                        I understand that this action cannot be undone
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="performDataErasure()" disabled id="eraseButton">
+                    <i class="bi bi-trash"></i> Erase All Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+// Show erase confirmation modal
+function showEraseConfirmation() {
+    const modal = new bootstrap.Modal(document.getElementById('eraseConfirmationModal'));
+    modal.show();
+
+    // Reset form
+    document.getElementById('confirmationText').value = '';
+    document.getElementById('confirmCheckbox').checked = false;
+    document.getElementById('eraseButton').disabled = true;
+}
+
+// Enable/disable erase button based on confirmation
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmationText = document.getElementById('confirmationText');
+    const confirmCheckbox = document.getElementById('confirmCheckbox');
+    const eraseButton = document.getElementById('eraseButton');
+
+    function updateEraseButton() {
+        const textMatches = confirmationText.value === 'ERASE ALL DATA';
+        const checkboxChecked = confirmCheckbox.checked;
+        eraseButton.disabled = !(textMatches && checkboxChecked);
+    }
+
+    confirmationText.addEventListener('input', updateEraseButton);
+    confirmCheckbox.addEventListener('change', updateEraseButton);
+});
+
+// Perform data erasure
+async function performDataErasure() {
+    try {
+        const button = document.getElementById('eraseButton');
+        const originalText = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Erasing...';
+
+        const response = await fetch('/settings/security/erase-all-data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                confirm_text: document.getElementById('confirmationText').value
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showAlert('success', result.message);
+            // Close modal and redirect after delay
+            bootstrap.Modal.getInstance(document.getElementById('eraseConfirmationModal')).hide();
+            setTimeout(() => {
+                window.location.href = '/settings';
+            }, 2000);
+        } else {
+            showAlert('danger', result.message);
+            button.disabled = false;
+            button.innerHTML = originalText;
+        }
+    } catch (error) {
+        showAlert('danger', 'Error during data erasure: ' + error.message);
+        const button = document.getElementById('eraseButton');
+        button.disabled = false;
+        button.innerHTML = '<i class="bi bi-trash"></i> Erase All Data';
+    }
+}
+
+// Show alert function
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    // Find container or create one
+    let alertContainer = document.getElementById('alertContainer');
+    if (!alertContainer) {
+        alertContainer = document.createElement('div');
+        alertContainer.id = 'alertContainer';
+        alertContainer.className = 'container mt-3';
+        const mainContent = document.querySelector('.container');
+        mainContent.insertBefore(alertContainer, mainContent.firstChild);
+    }
+
+    alertContainer.appendChild(alertDiv);
+
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        const bsAlert = new bootstrap.Alert(alertDiv);
+        bsAlert.close();
+    }, 5000);
+}
+</script>
+{% endblock %}

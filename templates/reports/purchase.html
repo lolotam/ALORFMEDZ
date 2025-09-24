@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+
+{% block title %}Purchase Report - ALORF HOSPITAL{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-cart"></i> Purchase Report</h2>
+                <div>
+                    <button class="btn btn-outline-primary me-2" onclick="window.print()">
+                        <i class="bi bi-printer"></i> Print Report
+                    </button>
+                    <button class="btn btn-success" onclick="exportToCSV()">
+                        <i class="bi bi-download"></i> Export CSV
+                    </button>
+                </div>
+            </div>
+
+            <!-- Report Summary Cards -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Purchases</h6>
+                                    <h3>{{ purchases|length }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-cart fs-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">This Month</h6>
+                                    <h3>{{ monthly_purchases }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-calendar-month fs-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <label for="supplierFilter" class="form-label">Filter by Supplier</label>
+                            <select class="form-select" id="supplierFilter" onchange="filterTable()">
+                                <option value="">All Suppliers</option>
+                                {% for supplier in suppliers %}
+                                <option value="{{ supplier.name }}">{{ supplier.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="purchaserFilter" class="form-label">Filter by Purchaser</label>
+                            <select class="form-select" id="purchaserFilter" onchange="filterTable()">
+                                <option value="">All Purchasers</option>
+                                {% set purchasers = purchases|map(attribute='purchaser_name')|unique|list %}
+                                {% for purchaser in purchasers %}
+                                <option value="{{ purchaser }}">{{ purchaser }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="statusFilter" class="form-label">Filter by Status</label>
+                            <select class="form-select" id="statusFilter" onchange="filterTable()">
+                                <option value="">All Status</option>
+                                <option value="complete">Complete</option>
+                                <option value="pending">Pending</option>
+                                <option value="delivered">Delivered</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="dateFromFilter" class="form-label">From Date</label>
+                            <input type="date" class="form-control" id="dateFromFilter" onchange="filterTable()">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="dateToFilter" class="form-label">To Date</label>
+                            <input type="date" class="form-control" id="dateToFilter" onchange="filterTable()">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="searchInput" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search purchases..." onkeyup="filterTable()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Purchases Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Purchase Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="purchasesTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th style="color: black;">Purchase ID</th>
+                                    <th style="color: black;">Date</th>
+                                    <th style="color: black;">Supplier</th>
+                                    <th style="color: black;">Purchaser</th>
+                                    <th style="color: black;">Medicines Count</th>
+                                    <th style="color: black;">Status</th>
+                                    <th style="color: black;">Notes</th>
+                                    <th style="color: black;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for purchase in purchases %}
+                                <tr data-date="{{ purchase.date }}" data-supplier="{{ purchase.supplier_name }}"
+                                    data-purchaser="{{ purchase.purchaser_name }}" data-status="{{ purchase.status }}">
+                                    <td><strong>{{ purchase.id }}</strong></td>
+                                    <td>{{ purchase.date }}</td>
+                                    <td>{{ purchase.supplier_name }}</td>
+                                    <td>{{ purchase.purchaser_name }}</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ purchase.medicines|length }}</span>
+                                    </td>
+                                    <td>
+                                        {% if purchase.get('status', 'complete') == 'complete' %}
+                                            <span class="badge bg-success">Complete</span>
+                                        {% elif purchase.get('status') == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% elif purchase.get('status') == 'delivered' %}
+                                            <span class="badge bg-info">Delivered</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ purchase.get('status', 'Unknown') }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ purchase.get('notes', 'N/A')[:50] }}{% if purchase.get('notes', '')|length > 50 %}...{% endif %}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="viewPurchaseDetails('{{ purchase.id }}')">
+                                            <i class="bi bi-eye"></i> View
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Purchase Details Modal -->
+            <div class="modal fade" id="purchaseDetailsModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Purchase Details</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body" id="purchaseDetailsContent">
+                            <!-- Content will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterTable() {
+    const supplierFilter = document.getElementById('supplierFilter').value.toLowerCase();
+    const dateFromFilter = document.getElementById('dateFromFilter').value;
+    const dateToFilter = document.getElementById('dateToFilter').value;
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const table = document.getElementById('purchasesTable');
+    const rows = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const supplier = row.getAttribute('data-supplier').toLowerCase();
+        const date = row.getAttribute('data-date');
+        const text = row.textContent.toLowerCase();
+        
+        let showRow = true;
+        
+        // Supplier filter
+        if (supplierFilter && !supplier.includes(supplierFilter)) {
+            showRow = false;
+        }
+        
+        // Date range filter
+        if (dateFromFilter && date < dateFromFilter) {
+            showRow = false;
+        }
+        if (dateToFilter && date > dateToFilter) {
+            showRow = false;
+        }
+        
+        // Search filter
+        if (searchInput && !text.includes(searchInput)) {
+            showRow = false;
+        }
+        
+        row.style.display = showRow ? '' : 'none';
+    }
+}
+
+function viewPurchaseDetails(purchaseId) {
+    // Find purchase data
+    const purchases = {{ purchases|tojson }};
+    const purchase = purchases.find(p => p.id === purchaseId);
+    
+    if (!purchase) {
+        alert('Purchase not found');
+        return;
+    }
+    
+    let content = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Purchase Information</h6>
+                <table class="table table-sm">
+                    <tr><td><strong>Purchase ID:</strong></td><td>${purchase.id}</td></tr>
+                    <tr><td><strong>Date:</strong></td><td>${purchase.date}</td></tr>
+                    <tr><td><strong>Supplier:</strong></td><td>${purchase.supplier_name}</td></tr>
+                    <tr><td><strong>Purchaser:</strong></td><td>${purchase.purchaser_name || 'Unknown'}</td></tr>
+                    <tr><td><strong>Status:</strong></td><td>${purchase.status || 'Complete'}</td></tr>
+                    ${purchase.status === 'delivered' && purchase.delivery_date ? `<tr><td><strong>Delivery Date:</strong></td><td>${purchase.delivery_date}</td></tr>` : ''}
+                    ${purchase.status === 'delivered' && purchase.received_by ? `<tr><td><strong>Received By:</strong></td><td>${purchase.received_by}</td></tr>` : ''}
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6>Notes</h6>
+                <p>${purchase.notes || 'No notes available'}</p>
+            </div>
+        </div>
+        <hr>
+        <h6>Medicines Purchased</h6>
+        <div class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th>Medicine</th>
+                        <th>Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    purchase.medicines.forEach(medicine => {
+        const quantity = parseInt(medicine.quantity || 0);
+
+        content += `
+            <tr>
+                <td>${medicine.medicine_name || medicine.medicine_id}</td>
+                <td>${quantity}</td>
+            </tr>
+        `;
+    });
+    
+    content += `
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    document.getElementById('purchaseDetailsContent').innerHTML = content;
+    new bootstrap.Modal(document.getElementById('purchaseDetailsModal')).show();
+}
+
+function exportToCSV() {
+    const table = document.getElementById('purchasesTable');
+    const rows = table.querySelectorAll('tr:not([style*="display: none"])');
+    let csv = [];
+    
+    // Headers (excluding Actions column)
+    const headers = Array.from(rows[0].cells).slice(0, -1).map(cell => cell.textContent.trim());
+    csv.push(headers.join(','));
+    
+    // Data rows
+    for (let i = 1; i < rows.length; i++) {
+        const row = Array.from(rows[i].cells).slice(0, -1).map(cell => {
+            let text = cell.textContent.trim();
+            text = text.replace(/\s+/g, ' ');
+            if (text.includes(',')) {
+                text = `"${text}"`;
+            }
+            return text;
+        });
+        csv.push(row.join(','));
+    }
+    
+    // Download
+    const csvContent = csv.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `purchase_report_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function filterTable() {
+    const supplierFilter = document.getElementById('supplierFilter').value.toLowerCase();
+    const purchaserFilter = document.getElementById('purchaserFilter').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+    const dateFromFilter = document.getElementById('dateFromFilter').value;
+    const dateToFilter = document.getElementById('dateToFilter').value;
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+
+    const table = document.getElementById('purchasesTable');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const supplierName = row.getAttribute('data-supplier').toLowerCase();
+        const purchaserName = row.getAttribute('data-purchaser').toLowerCase();
+        const status = row.getAttribute('data-status').toLowerCase();
+        const date = row.getAttribute('data-date');
+        const rowText = row.textContent.toLowerCase();
+
+        let showRow = true;
+
+        // Filter by supplier
+        if (supplierFilter && !supplierName.includes(supplierFilter)) {
+            showRow = false;
+        }
+
+        // Filter by purchaser
+        if (purchaserFilter && !purchaserName.includes(purchaserFilter)) {
+            showRow = false;
+        }
+
+        // Filter by status
+        if (statusFilter && status !== statusFilter) {
+            showRow = false;
+        }
+
+        // Filter by date range
+        if (dateFromFilter && date < dateFromFilter) {
+            showRow = false;
+        }
+        if (dateToFilter && date > dateToFilter) {
+            showRow = false;
+        }
+
+        // Filter by search text
+        if (searchInput && !rowText.includes(searchInput)) {
+            showRow = false;
+        }
+
+        row.style.display = showRow ? '' : 'none';
+    }
+}
+</script>
+{% endblock %}

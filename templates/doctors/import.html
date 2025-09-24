@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Import Doctors - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-upload"></i> Import Doctors</h1>
+    <a href="{{ url_for('doctors.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Doctors
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Import Instructions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-info-circle"></i> Import Instructions</h5>
+            </div>
+            <div class="card-body">
+                <h6>CSV File Format Requirements:</h6>
+                <ul>
+                    <li>File must be in CSV format (.csv extension)</li>
+                    <li>First row should contain headers (case-sensitive)</li>
+                    <li><strong>Required columns:</strong> Doctor Name, Gender</li>
+                    <li><strong>Optional columns:</strong> Nationality, Specialist, Position, Type, Mobile No, Email, Note</li>
+                </ul>
+
+                <h6>Column Details:</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Column Name</th>
+                                <th>Required</th>
+                                <th>Valid Values</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Doctor Name</td>
+                                <td><span class="badge bg-danger">Required</span></td>
+                                <td>Any text</td>
+                                <td>Dr. John Smith</td>
+                            </tr>
+                            <tr>
+                                <td>Gender</td>
+                                <td><span class="badge bg-danger">Required</span></td>
+                                <td>male, female</td>
+                                <td>male</td>
+                            </tr>
+                            <tr>
+                                <td>Nationality</td>
+                                <td><span class="badge bg-secondary">Optional</span></td>
+                                <td>Any text</td>
+                                <td>American</td>
+                            </tr>
+                            <tr>
+                                <td>Specialist</td>
+                                <td><span class="badge bg-secondary">Optional</span></td>
+                                <td>surgery, gynecologist, dermatologist, gp, pediatrician, etc.</td>
+                                <td>surgery</td>
+                            </tr>
+                            <tr>
+                                <td>Position</td>
+                                <td><span class="badge bg-secondary">Optional</span></td>
+                                <td>specialist, consultant, professor, etc.</td>
+                                <td>consultant</td>
+                            </tr>
+                            <tr>
+                                <td>Type</td>
+                                <td><span class="badge bg-secondary">Optional</span></td>
+                                <td>employee, visitor</td>
+                                <td>employee</td>
+                            </tr>
+                            <tr>
+                                <td>Mobile No</td>
+                                <td><span class="badge bg-secondary">Optional</span></td>
+                                <td>Phone number</td>
+                                <td>+1234567890</td>
+                            </tr>
+                            <tr>
+                                <td>Email</td>
+                                <td><span class="badge bg-secondary">Optional</span></td>
+                                <td>Valid email address</td>
+                                <td>doctor@hospital.com</td>
+                            </tr>
+                            <tr>
+                                <td>Note</td>
+                                <td><span class="badge bg-secondary">Optional</span></td>
+                                <td>Any text</td>
+                                <td>Senior surgeon</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Important:</strong> Duplicate email addresses will be skipped during import.
+                </div>
+            </div>
+        </div>
+
+        <!-- Import Form -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-file-earmark-spreadsheet"></i> Upload CSV File</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Select CSV File</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".csv" required>
+                        <div class="form-text">Only CSV files are allowed. Maximum file size: 10MB</div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ url_for('doctors.index') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload"></i> Import Doctors
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sample CSV Template -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-download"></i> Sample CSV Template</h5>
+            </div>
+            <div class="card-body">
+                <p>Download this sample CSV template to get started:</p>
+                <div class="bg-light p-3 rounded">
+                    <pre>Doctor Name,Gender,Nationality,Specialist,Position,Type,Mobile No,Email,Note
+Dr. John Smith,male,American,surgery,consultant,employee,+1234567890,john@hospital.com,Senior surgeon
+Dr. Sarah Johnson,female,British,pediatrician,specialist,employee,+44123456789,sarah@hospital.com,Pediatric specialist</pre>
+                </div>
+                <button class="btn btn-outline-primary btn-sm mt-2" onclick="downloadTemplate()">
+                    <i class="bi bi-download"></i> Download Template
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function downloadTemplate() {
+    const csvContent = `Doctor Name,Gender,Nationality,Specialist,Position,Type,Mobile No,Email,Note
+Dr. John Smith,male,American,surgery,consultant,employee,+1234567890,john@hospital.com,Senior surgeon
+Dr. Sarah Johnson,female,British,pediatrician,specialist,employee,+44123456789,sarah@hospital.com,Pediatric specialist`;
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = 'doctors_template.csv';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+}
+
+// File validation
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('file');
+
+    fileInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            if (!file.name.toLowerCase().endsWith('.csv')) {
+                alert('Please select a CSV file.');
+                this.value = '';
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) { // 10MB
+                alert('File size too large. Maximum size is 10MB.');
+                this.value = '';
+                return;
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

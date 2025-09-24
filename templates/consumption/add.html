@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+
+{% block title %}Record Consumption - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-cart-dash"></i> Record Consumption</h1>
+    <a href="{{ url_for('consumption.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Consumption
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-receipt"></i> Point-of-Sale Style Consumption</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    <!-- Basic Information -->
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="date" class="form-label">Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="date" name="date" required>
+                                <div class="invalid-feedback">
+                                    Please provide a date.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="department_id" class="form-label">Department <span class="text-danger">*</span></label>
+                                <select class="form-select" id="department_id" name="department_id" required onchange="updateDepartmentStock()">
+                                    <option value="">Select Department</option>
+                                    {% if session.role == 'admin' %}
+                                        {% for department in departments %}
+                                        <option value="{{ department.id }}" {% if department.id == session.department_id %}selected{% endif %}>{{ department.name }}</option>
+                                        {% endfor %}
+                                    {% else %}
+                                        {% for department in departments %}
+                                            {% if department.id == session.department_id %}
+                                            <option value="{{ department.id }}" selected>{{ department.name }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select a department.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="patient_id" class="form-label">Patient <span class="text-danger">*</span></label>
+                                <select class="form-select" id="patient_id" name="patient_id" required>
+                                    <option value="">Select Patient</option>
+                                    {% for patient in patients %}
+                                    <option value="{{ patient.id }}">{{ patient.name }} ({{ patient.gender }})</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select a patient.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="prescribed_by" class="form-label">Prescribed By <span class="text-danger">*</span></label>
+                                <select class="form-select" id="prescribed_by" name="prescribed_by" required>
+                                    <option value="">Select Doctor</option>
+                                    {% for doctor in doctors %}
+                                    <option value="{{ doctor.dr_name }}">{{ doctor.dr_name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select the prescribing doctor.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Available Stock Info -->
+                    <div class="alert alert-info" id="stockInfo" style="display: none;">
+                        <h6><i class="bi bi-info-circle"></i> Available Stock in Selected Department:</h6>
+                        <div class="row" id="stockDisplay">
+                            <!-- Stock information will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Medicines Section -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label">Medicines to Dispense <span class="text-danger">*</span></label>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addMedicineRow()">
+                                <i class="bi bi-plus"></i> Add Medicine
+                            </button>
+                        </div>
+                        
+                        <div id="medicinesContainer">
+                            <div class="row mb-2 medicine-row">
+                                <div class="col-md-6">
+                                    <select class="form-select medicine-select" name="medicine_id[]" required onchange="updateAvailableStock(this)">
+                                        <option value="">Select Medicine</option>
+                                        {% for medicine in medicines %}
+                                        <option value="{{ medicine.id }}"{% for store in stores %} data-stock-{{ store.department_id }}="{{ store.inventory.get(medicine.id, 0) }}"{% endfor %}>
+                                            {{ medicine.name }} - {{ medicine.form_dosage }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control quantity-input" name="quantity[]" placeholder="Quantity" min="1" required onchange="validateQuantity(this)">
+                                </div>
+                                <div class="col-md-2">
+                                    <span class="form-control-plaintext stock-info text-muted">Available: -</span>
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeMedicineRow(this)" disabled>
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Summary -->
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <h6><i class="bi bi-calculator"></i> Summary</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Total Items:</strong> <span id="totalItems">0</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Total Quantity:</strong> <span id="totalQuantity">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                  placeholder="Additional information about the consumption..."></textarea>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ url_for('consumption.index') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Record Consumption
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Fix doctor dropdown font color issue */
+#prescribed_by option {
+    color: #000 !important;
+    background-color: #fff !important;
+}
+
+#prescribed_by {
+    color: #000 !important;
+}
+
+/* Ensure all select options are visible */
+.form-select option {
+    color: #000 !important;
+    background-color: #fff !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Set today's date as default
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date').value = today;
+    updateSummary();
+
+    // Set default department if user is not admin
+    {% if session.role != 'admin' %}
+    const departmentSelect = document.getElementById('department_id');
+    if (departmentSelect.value) {
+        updateDepartmentStock();
+    }
+    {% endif %}
+});
+
+// Update department stock display
+function updateDepartmentStock() {
+    // Update all existing medicine rows when department changes
+    updateAllMedicineStocks();
+}
+
+// Add medicine row
+function addMedicineRow() {
+    const container = document.getElementById('medicinesContainer');
+    const newRow = document.createElement('div');
+    newRow.className = 'row mb-2 medicine-row';
+
+    // Build medicine options with all store data
+    let medicineOptions = '<option value="">Select Medicine</option>';
+    {% for medicine in medicines %}
+    medicineOptions += `<option value="{{ medicine.id }}"
+        {% for store in stores %}data-stock-{{ store.department_id }}="{{ store.inventory.get(medicine.id, 0) }}"{% endfor %}>
+        {{ medicine.name }} - {{ medicine.form_dosage }}
+    </option>`;
+    {% endfor %}
+
+    newRow.innerHTML = `
+        <div class="col-md-6">
+            <select class="form-select medicine-select" name="medicine_id[]" required onchange="updateAvailableStock(this)">
+                ${medicineOptions}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input type="number" class="form-control quantity-input" name="quantity[]" placeholder="Quantity" min="1" required onchange="validateQuantity(this)">
+        </div>
+        <div class="col-md-2">
+            <span class="form-control-plaintext stock-info text-muted">Available: -</span>
+        </div>
+        <div class="col-md-1">
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeMedicineRow(this)">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    `;
+
+    container.appendChild(newRow);
+    updateRemoveButtons();
+    updateSummary();
+}
+
+// Remove medicine row
+function removeMedicineRow(button) {
+    const row = button.closest('.medicine-row');
+    row.remove();
+    updateRemoveButtons();
+    updateSummary();
+}
+
+// Update remove buttons (disable if only one row)
+function updateRemoveButtons() {
+    const rows = document.querySelectorAll('.medicine-row');
+    const removeButtons = document.querySelectorAll('.medicine-row button[onclick*="removeMedicineRow"]');
+    
+    removeButtons.forEach(button => {
+        button.disabled = rows.length <= 1;
+    });
+}
+
+// Update available stock display
+function updateAvailableStock(select) {
+    const row = select.closest('.medicine-row');
+    const stockInfo = row.querySelector('.stock-info');
+    const quantityInput = row.querySelector('.quantity-input');
+
+    const selectedOption = select.options[select.selectedIndex];
+    const departmentSelect = document.getElementById('department_id');
+    const selectedDepartmentId = departmentSelect.value;
+
+    if (selectedOption.value && selectedDepartmentId) {
+        const stockAttr = `data-stock-${selectedDepartmentId}`;
+        const stock = parseInt(selectedOption.getAttribute(stockAttr) || 0);
+        stockInfo.textContent = `Available: ${stock}`;
+        quantityInput.max = stock;
+
+        // Validate current quantity
+        validateQuantity(quantityInput);
+    } else {
+        stockInfo.textContent = 'Available: -';
+        quantityInput.max = '';
+    }
+}
+
+// Update all medicine stocks when department changes
+function updateAllMedicineStocks() {
+    const medicineSelects = document.querySelectorAll('.medicine-select');
+    medicineSelects.forEach(select => {
+        if (select.value) {
+            updateAvailableStock(select);
+        }
+    });
+}
+
+// Validate quantity against available stock
+function validateQuantity(input) {
+    const row = input.closest('.medicine-row');
+    const select = row.querySelector('.medicine-select');
+    const selectedOption = select.options[select.selectedIndex];
+    const departmentSelect = document.getElementById('department_id');
+    const selectedDepartmentId = departmentSelect.value;
+
+    if (selectedOption.value && selectedDepartmentId) {
+        const stockAttr = `data-stock-${selectedDepartmentId}`;
+        const stock = parseInt(selectedOption.getAttribute(stockAttr) || 0);
+        const quantity = parseInt(input.value || 0);
+
+        if (quantity > stock) {
+            input.setCustomValidity(`Only ${stock} available in stock`);
+            input.classList.add('is-invalid');
+        } else {
+            input.setCustomValidity('');
+            input.classList.remove('is-invalid');
+        }
+    }
+
+    updateSummary();
+}
+
+// Update summary
+function updateSummary() {
+    const rows = document.querySelectorAll('.medicine-row');
+    const quantities = document.querySelectorAll('.quantity-input');
+    
+    let totalItems = 0;
+    let totalQuantity = 0;
+    
+    rows.forEach((row, index) => {
+        const select = row.querySelector('.medicine-select');
+        const quantityInput = quantities[index];
+        
+        if (select.value && quantityInput.value) {
+            totalItems++;
+            totalQuantity += parseInt(quantityInput.value || 0);
+        }
+    });
+    
+    document.getElementById('totalItems').textContent = totalItems;
+    document.getElementById('totalQuantity').textContent = totalQuantity;
+}
+
+// Form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByTagName('form');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+</script>
+{% endblock %}

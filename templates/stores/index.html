@@ -1,0 +1,553 @@
+{% extends "base.html" %}
+
+{% block title %}Stores Management - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-box"></i> Stores Management</h1>
+    <div>
+        {% if session.role == 'admin' %}
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="bi bi-funnel"></i> Filter by Store
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" onclick="filterByStore('')">All Stores</a></li>
+                {% for department in departments %}
+                <li><a class="dropdown-item" href="#" onclick="filterByStore('{{ department.id }}')">{{ department.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        <a href="{{ url_for('transfers.index') }}" class="btn btn-outline-success">
+            <i class="bi bi-arrow-left-right"></i> Inventory Transfers
+        </a>
+        <a href="{{ url_for('stores.export_inventory') }}" class="btn btn-outline-info">
+            <i class="bi bi-download"></i> Export Inventory
+        </a>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="row mb-3">
+    <div class="col-md-4">
+        <label for="searchInput" class="form-label fw-bold text-muted mb-1">
+            <i class="bi bi-search"></i> Search
+        </label>
+        <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" id="searchInput" placeholder="Search medicines...">
+        </div>
+    </div>
+    {% if session.role == 'admin' %}
+    <div class="col-md-3">
+        <label for="storeFilter" class="form-label fw-bold text-muted mb-1">
+            <i class="bi bi-building"></i> Department
+        </label>
+        <select class="form-select" id="storeFilter" onchange="filterByStore(this.value)">
+            <option value="" {% if not department_filter %}selected{% endif %}>All Stores</option>
+            {% for department in departments %}
+            <option value="{{ department.id }}" {% if department_filter == department.id %}selected{% endif %}>{{ department.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+    <div class="col-md-3">
+        <label for="stockFilter" class="form-label fw-bold text-muted mb-1">
+            <i class="bi bi-bar-chart"></i> Stock
+        </label>
+        <select class="form-select" id="stockFilter" onchange="filterByStockLevel(this.value)">
+            <option value="">All Stock Levels</option>
+            <option value="out">Out of Stock</option>
+            <option value="low">Low Stock</option>
+            <option value="medium">Medium Stock</option>
+            <option value="good">Good Stock</option>
+        </select>
+    </div>
+</div>
+
+{% if session.role == 'admin' %}
+<!-- Admin View: Master Inventory Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="bi bi-grid-3x3-gap"></i> Master Inventory Overview</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="storesTable">
+                <thead>
+                    <tr>
+                        <th>Medicine Name</th>
+                        <th>Form/Dosage</th>
+                        <th>Low Limit</th>
+                        {% for department in departments %}
+                        <th>{{ department.name }}</th>
+                        {% endfor %}
+                        <th>Total Stock</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for medicine in medicines %}
+                    <tr data-medicine-id="{{ medicine.id }}">
+                        <td><strong>{{ medicine.name }}</strong></td>
+                        <td>{{ medicine.form_dosage }}</td>
+                        <td>{{ medicine.low_stock_limit }}</td>
+                        {% for department in departments %}
+                        <td>
+                            {% set store = stores|selectattr('department_id', 'equalto', department.id)|first %}
+                            {% if store %}
+                                {% set stock = store.inventory.get(medicine.id, 0) %}
+                                <span class="badge {% if stock <= medicine.low_stock_limit %}bg-danger{% elif stock <= medicine.low_stock_limit * 1.5 %}bg-warning{% else %}bg-success{% endif %}">
+                                    {{ stock }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary">0</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                        <td><strong>{{ medicine.total_stock }}</strong></td>
+                        <td>
+                            {% if medicine.stock_status == 'out' %}
+                            <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Out of Stock</span>
+                            {% elif medicine.stock_status == 'low' %}
+                            <span class="badge bg-danger"><i class="bi bi-exclamation-triangle"></i> Low Stock</span>
+                            {% elif medicine.stock_status == 'medium' %}
+                            <span class="badge bg-warning"><i class="bi bi-exclamation-circle"></i> Medium Stock</span>
+                            {% else %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Good Stock</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="{{ departments|length + 5 }}" class="text-center text-muted">
+                            <i class="bi bi-inbox"></i> No medicines found. 
+                            <a href="{{ url_for('medicines.add') }}">Add medicines</a> to see inventory.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Store Details Cards -->
+<div class="row mt-4">
+    {% for store in stores %}
+    <div class="col-md-6 mb-3">
+        <div class="card store-card" data-department-id="{{ store.department_id }}">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-box"></i> {{ store.name }}
+                </h6>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="viewStoreDetails('{{ store.id }}')">
+                        <i class="bi bi-eye"></i> View Details
+                    </button>
+                    <a href="{{ url_for('stores.edit', store_id=store.id) }}" class="btn btn-sm btn-outline-warning">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                    {% if session.role == 'admin' %}
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteStore('{{ store.id }}')"
+                            {% if store.id == '01' %}disabled title="Cannot delete main store"{% endif %}>
+                        <i class="bi bi-trash"></i>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    <strong>Department:</strong> 
+                    {% set department = departments|selectattr('id', 'equalto', store.department_id)|first %}
+                    {{ department.name if department else 'Unknown' }}<br>
+                    <strong>Total Items:</strong> {{ store.inventory|length }}<br>
+                    <strong>Low Stock Items:</strong> 
+                    {% set low_stock_count = 0 %}
+                    {% for medicine_id, stock in store.inventory.items() %}
+                        {% set medicine = medicines|selectattr('id', 'equalto', medicine_id)|first %}
+                        {% if medicine and stock <= medicine.low_stock_limit %}
+                            {% set low_stock_count = low_stock_count + 1 %}
+                        {% endif %}
+                    {% endfor %}
+                    <span class="badge {% if low_stock_count > 0 %}bg-danger{% else %}bg-success{% endif %}">
+                        {{ low_stock_count }}
+                    </span>
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<!-- Department User View: Single Store -->
+{% set user_store = stores|selectattr('department_id', 'equalto', session.department_id)|first %}
+{% if user_store %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="bi bi-box"></i> {{ user_store.name }} - Inventory</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="storesTable">
+                <thead>
+                    <tr>
+                        <th>Medicine Name</th>
+                        <th>Form/Dosage</th>
+                        <th>Current Stock</th>
+                        <th>Low Limit</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for medicine_id, stock in user_store.inventory.items() %}
+                    {% set medicine = medicines|selectattr('id', 'equalto', medicine_id)|first %}
+                    {% if medicine %}
+                    <tr>
+                        <td><strong>{{ medicine.name }}</strong></td>
+                        <td>{{ medicine.form_dosage }}</td>
+                        <td>
+                            <span class="badge {% if stock <= medicine.low_stock_limit %}bg-danger{% elif stock <= medicine.low_stock_limit * 1.5 %}bg-warning{% else %}bg-success{% endif %}">
+                                {{ stock }}
+                            </span>
+                        </td>
+                        <td>{{ medicine.low_stock_limit }}</td>
+                        <td>
+                            {% if stock == 0 %}
+                            <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Out of Stock</span>
+                            {% elif stock <= medicine.low_stock_limit %}
+                            <span class="badge bg-danger"><i class="bi bi-exclamation-triangle"></i> Low Stock</span>
+                            {% elif stock <= medicine.low_stock_limit * 1.5 %}
+                            <span class="badge bg-warning"><i class="bi bi-exclamation-circle"></i> Medium Stock</span>
+                            {% else %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Good Stock</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">
+                            <i class="bi bi-inbox"></i> No inventory found for this store.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle"></i>
+    No store found for your department. Please contact the administrator.
+</div>
+{% endif %}
+{% endif %}
+
+<!-- Store Details Modal -->
+<div class="modal fade" id="storeDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-box"></i> Store Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="storeDetailsContent">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Filter by store (admin only)
+function filterByStore(departmentId) {
+    const cards = document.querySelectorAll('.store-card');
+    const rows = document.querySelectorAll('[data-medicine-id]');
+    const table = document.getElementById('storesTable');
+
+    if (departmentId === '') {
+        // Show all
+        cards.forEach(card => card.style.display = 'block');
+        rows.forEach(row => row.style.display = 'table-row');
+
+        // Show all columns in table
+        if (table) {
+            const headers = table.querySelectorAll('th');
+            const dataRows = table.querySelectorAll('tbody tr');
+            headers.forEach(header => header.style.display = '');
+            dataRows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                cells.forEach(cell => cell.style.display = '');
+            });
+        }
+    } else {
+        // Filter by department
+        cards.forEach(card => {
+            if (card.getAttribute('data-department-id') === departmentId) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Hide other department columns in table
+        if (table) {
+            const headers = table.querySelectorAll('th');
+            const dataRows = table.querySelectorAll('tbody tr');
+
+            headers.forEach((header, index) => {
+                if (index > 2 && index < headers.length - 2) { // Department columns
+                    const departmentName = header.textContent.trim();
+                    const selectedDept = document.querySelector(`#storeFilter option[value="${departmentId}"]`);
+                    if (selectedDept && departmentName !== selectedDept.textContent) {
+                        header.style.display = 'none';
+                        dataRows.forEach(row => {
+                            const cell = row.cells[index];
+                            if (cell) cell.style.display = 'none';
+                        });
+                    } else {
+                        header.style.display = '';
+                        dataRows.forEach(row => {
+                            const cell = row.cells[index];
+                            if (cell) cell.style.display = '';
+                        });
+                    }
+                }
+            });
+        }
+    }
+}
+
+// Filter by stock level
+function filterByStockLevel(level) {
+    const rows = document.querySelectorAll('[data-medicine-id]');
+    const storeCardsContainer = document.querySelector('.row.mt-4');
+
+    if (level === '') {
+        // Show all table rows
+        rows.forEach(row => {
+            row.style.display = 'table-row';
+        });
+        // Show store cards section
+        if (storeCardsContainer) {
+            storeCardsContainer.style.display = 'flex';
+        }
+    } else {
+        // Filter table rows by stock level
+        rows.forEach(row => {
+            // Get the status cell (last cell in the row)
+            const cells = row.querySelectorAll('td');
+            const statusCell = cells[cells.length - 1]; // Last cell contains the status badge
+
+            if (statusCell) {
+                const statusBadge = statusCell.querySelector('.badge');
+                if (statusBadge) {
+                    const status = statusBadge.textContent.toLowerCase();
+                    let showRow = false;
+
+                    switch(level) {
+                        case 'low':
+                            showRow = status.includes('low stock') || status.includes('out of stock');
+                            break;
+                        case 'medium':
+                            showRow = status.includes('medium stock');
+                            break;
+                        case 'good':
+                            showRow = status.includes('good stock');
+                            break;
+                        case 'out':
+                            showRow = status.includes('out of stock');
+                            break;
+                    }
+
+                    row.style.display = showRow ? 'table-row' : 'none';
+                } else {
+                    row.style.display = 'none';
+                }
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        // Hide store cards section when filtering by stock level
+        if (storeCardsContainer) {
+            storeCardsContainer.style.display = 'none';
+        }
+    }
+}
+
+// View store details
+function viewStoreDetails(storeId) {
+    // Find store data from the page
+    const stores = {{ stores | tojson | safe }};
+    const medicines = {{ medicines | tojson | safe }};
+    const departments = {{ departments | tojson | safe }};
+
+    const store = stores.find(s => s.id === storeId);
+    if (!store) {
+        alert('Store not found');
+        return;
+    }
+
+    const department = departments.find(d => d.id === store.department_id);
+
+    // Calculate inventory statistics
+    let totalItems = 0;
+    let lowStockItems = 0;
+    let inventoryHtml = '';
+
+    if (store.inventory && Object.keys(store.inventory).length > 0) {
+        for (const [medicineId, quantity] of Object.entries(store.inventory)) {
+            const medicine = medicines.find(m => m.id === medicineId);
+            if (medicine && quantity > 0) {
+                totalItems++;
+
+                // Check stock status
+                const lowLimit = medicine.low_stock_limit || 0;
+                let stockStatus = 'Good Stock';
+                let statusClass = 'success';
+
+                if (quantity === 0) {
+                    stockStatus = 'Out of Stock';
+                    statusClass = 'danger';
+                } else if (quantity <= lowLimit) {
+                    stockStatus = 'Low Stock';
+                    statusClass = 'warning';
+                    lowStockItems++;
+                } else if (quantity <= lowLimit * 1.5) {
+                    stockStatus = 'Medium Stock';
+                    statusClass = 'info';
+                }
+
+                inventoryHtml += `
+                    <tr>
+                        <td><strong>${medicine.name}</strong></td>
+                        <td>${medicine.form_dosage}</td>
+                        <td>${quantity}</td>
+                        <td>${lowLimit}</td>
+                        <td><span class="badge bg-${statusClass}">${stockStatus}</span></td>
+                    </tr>
+                `;
+            }
+        }
+    }
+
+    if (inventoryHtml === '') {
+        inventoryHtml = '<tr><td colspan="5" class="text-center text-muted">No inventory items</td></tr>';
+    }
+
+    // Format creation date
+    const createdDate = new Date(store.created_at).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    // Build modal content
+    const modalContent = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6><i class="bi bi-info-circle"></i> Basic Information</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Store Name:</strong></td>
+                        <td>${store.name}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Store ID:</strong></td>
+                        <td>${store.id}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Department:</strong></td>
+                        <td>${department ? department.name : 'Unknown'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Created:</strong></td>
+                        <td>${createdDate}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6><i class="bi bi-graph-up"></i> Inventory Summary</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Total Items:</strong></td>
+                        <td><span class="badge bg-primary">${totalItems}</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Low Stock Items:</strong></td>
+                        <td><span class="badge bg-warning">${lowStockItems}</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Status:</strong></td>
+                        <td>
+                            ${lowStockItems > 0
+                                ? '<span class="badge bg-warning">Needs Attention</span>'
+                                : '<span class="badge bg-success">Good</span>'
+                            }
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <hr>
+
+        <h6><i class="bi bi-list-ul"></i> Inventory Details</h6>
+        <div class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th>Medicine Name</th>
+                        <th>Form/Dosage</th>
+                        <th>Current Stock</th>
+                        <th>Low Limit</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${inventoryHtml}
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    // Update modal content and show
+    document.getElementById('storeDetailsContent').innerHTML = modalContent;
+    const modal = new bootstrap.Modal(document.getElementById('storeDetailsModal'));
+    modal.show();
+}
+
+// Delete store
+function deleteStore(storeId) {
+    if (confirm('Are you sure you want to delete this store and its associated department? All inventory will be transferred to the Main Store and the department will be permanently removed.')) {
+        window.location.href = '/stores/delete_comprehensive/' + storeId;
+    }
+}
+
+// Initialize search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    searchTable('searchInput', 'storesTable');
+
+    // Apply initial filtering if department parameter is present
+    {% if department_filter %}
+    filterByStore('{{ department_filter }}');
+    {% endif %}
+});
+</script>
+{% endblock %}

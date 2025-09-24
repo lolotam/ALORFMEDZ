@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}Doctors - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-person-badge"></i> Doctors Management</h1>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('doctors.add') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add Doctor
+        </a>
+        <div class="btn-group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="bi bi-three-dots"></i> Actions
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{{ url_for('doctors.export') }}">
+                    <i class="bi bi-download"></i> Export CSV
+                </a></li>
+                <li><a class="dropdown-item" href="{{ url_for('doctors.import_doctors') }}">
+                    <i class="bi bi-upload"></i> Import CSV
+                </a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><button class="dropdown-item text-danger" onclick="bulkDelete()">
+                    <i class="bi bi-trash"></i> Bulk Delete
+                </button></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" id="searchInput" placeholder="Search doctors...">
+        </div>
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" id="specialistFilter">
+            <option value="">All Specialists</option>
+            {% for value, label in specialist_options %}
+            <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" id="genderFilter">
+            <option value="">All Genders</option>
+            {% for value, label in gender_options %}
+            <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select class="form-select" id="typeFilter">
+            <option value="">All Types</option>
+            {% for value, label in type_options %}
+            <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+
+<!-- Doctors Table -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="doctorsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Doctor Name</th>
+                        <th>Specialization</th>
+                        <th>Department</th>
+                        <th>Qualification</th>
+                        <th>Gender</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>License Number</th>
+                        <th>Notes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doctor in doctors %}
+                    <tr data-specialist="{{ doctor.specialization|lower if doctor.specialization else '' }}"
+                        data-gender="{{ doctor.gender|lower if doctor.gender else '' }}"
+                        data-type="{{ doctor.type|lower if doctor.type else '' }}">
+                        <td>{{ doctor.id }}</td>
+                        <td><strong>{{ doctor.name }}</strong></td>
+                        <td>
+                            {% if doctor.specialization %}
+                                <span class="badge bg-info">{{ doctor.specialization }}</span>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if doctor.department_id %}
+                                {% set department = departments|selectattr('id', 'equalto', doctor.department_id)|first %}
+                                {{ department.name if department else 'N/A' }}
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if doctor.qualification %}
+                                <span class="badge bg-secondary">{{ doctor.qualification }}</span>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if doctor.gender %}
+                                <span class="badge bg-{{ 'primary' if doctor.gender == 'male' else 'danger' }}">
+                                    <i class="bi bi-{{ 'person' if doctor.gender == 'male' else 'person-dress' }}"></i>
+                                    {{ doctor.gender|title }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if doctor.phone %}
+                                <a href="tel:{{ doctor.phone }}" class="text-decoration-none">
+                                    <i class="bi bi-telephone"></i> {{ doctor.phone }}
+                                </a>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if doctor.email %}
+                                <a href="mailto:{{ doctor.email }}" class="text-decoration-none">
+                                    <i class="bi bi-envelope"></i> {{ doctor.email }}
+                                </a>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if doctor.license_number %}
+                                <code>{{ doctor.license_number }}</code>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if doctor.notes %}
+                                {{ doctor.notes[:30] }}{% if doctor.notes|length > 30 %}...{% endif %}
+                            {% else %}
+                                <span class="text-muted">No notes</span>
+                            {% endif %}
+                        </td>
+                        <td class="action-buttons">
+                            <a href="{{ url_for('doctors.edit', doctor_id=doctor.id) }}"
+                               class="btn btn-sm btn-outline-primary" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{{ url_for('doctors.delete', doctor_id=doctor.id) }}"
+                               class="btn btn-sm btn-outline-danger" title="Delete"
+                               onclick="return confirmDelete('Are you sure you want to delete this doctor?')">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="11" class="text-center text-muted">
+                            <i class="bi bi-person-badge"></i> No doctors found.
+                            <a href="{{ url_for('doctors.add') }}">Add the first doctor</a>.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    searchTable('searchInput', 'doctorsTable');
+
+    // Initialize filter functionality
+    const specialistFilter = document.getElementById('specialistFilter');
+    const genderFilter = document.getElementById('genderFilter');
+    const typeFilter = document.getElementById('typeFilter');
+    const searchInput = document.getElementById('searchInput');
+
+    function filterTable() {
+        const table = document.getElementById('doctorsTable');
+        const tbody = table.getElementsByTagName('tbody')[0];
+        const rows = tbody.getElementsByTagName('tr');
+
+        const specialistValue = specialistFilter.value.toLowerCase();
+        const genderValue = genderFilter.value.toLowerCase();
+        const typeValue = typeFilter.value.toLowerCase();
+        const searchValue = searchInput.value.toLowerCase();
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const cells = row.getElementsByTagName('td');
+
+            if (cells.length === 0) continue;
+
+            let showRow = true;
+
+            // Search filter
+            if (searchValue) {
+                const doctorName = cells[1].textContent.toLowerCase();
+                const specialization = cells[2].textContent.toLowerCase();
+                const department = cells[3].textContent.toLowerCase();
+                const qualification = cells[4].textContent.toLowerCase();
+                const phone = cells[6].textContent.toLowerCase();
+                const email = cells[7].textContent.toLowerCase();
+                const notes = cells[9].textContent.toLowerCase();
+
+                if (!doctorName.includes(searchValue) &&
+                    !specialization.includes(searchValue) &&
+                    !department.includes(searchValue) &&
+                    !qualification.includes(searchValue) &&
+                    !phone.includes(searchValue) &&
+                    !email.includes(searchValue) &&
+                    !notes.includes(searchValue)) {
+                    showRow = false;
+                }
+            }
+
+            // Specialist filter
+            if (showRow && specialistValue !== '') {
+                const specialistFromRow = row.getAttribute('data-specialist');
+                if (!specialistFromRow || !specialistFromRow.includes(specialistValue)) {
+                    showRow = false;
+                }
+            }
+
+            // Gender filter
+            if (showRow && genderValue !== '') {
+                const genderFromRow = row.getAttribute('data-gender');
+                if (genderFromRow !== genderValue) {
+                    showRow = false;
+                }
+            }
+
+            // Type filter
+            if (showRow && typeValue !== '') {
+                const typeFromRow = row.getAttribute('data-type');
+                if (typeFromRow !== typeValue) {
+                    showRow = false;
+                }
+            }
+
+            row.style.display = showRow ? '' : 'none';
+        }
+    }
+
+    // Add event listeners
+    specialistFilter.addEventListener('change', filterTable);
+    genderFilter.addEventListener('change', filterTable);
+    typeFilter.addEventListener('change', filterTable);
+    searchInput.addEventListener('input', filterTable);
+
+    // Initialize bulk delete functionality
+    initBulkDelete('doctorsTable', 'doctors', '/doctors/bulk-delete');
+});
+</script>
+{% endblock %}

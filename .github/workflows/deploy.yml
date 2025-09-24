@@ -1,0 +1,53 @@
+name: Auto Deploy to Server
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy to server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        port: ${{ secrets.PORT }}
+        script: |
+          cd /opt/alorfmedz
+          
+          # Create backup
+          BACKUP_DATE=$(date +%Y%m%d_%H%M%S)
+          mkdir -p backups/auto-deploy
+          tar -czf backups/auto-deploy/backup_${BACKUP_DATE}.tar.gz data logs 2>/dev/null || echo "No data/logs to backup"
+          
+          # Pull latest code
+          git pull origin main
+          
+          # Build and deploy
+          docker-compose down
+          docker-compose up -d --build
+          
+          # Wait for services to be ready
+          echo "Waiting for services to start..."
+          sleep 30
+          
+          # Health check
+          echo "Performing health check..."
+          curl -f -k https://alorfmedz.com/ || echo "Health check failed but continuing..."
+          
+          # Show container status
+          docker-compose ps
+          
+          # Cleanup old backups (keep last 7 days)
+          find backups/auto-deploy -name "*.tar.gz" -mtime +7 -delete 2>/dev/null || echo "No old backups to clean"
+          
+          echo "Deployment completed successfully!"

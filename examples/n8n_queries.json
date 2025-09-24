@@ -1,0 +1,21 @@
+{
+  "comprehensive_data_query": {
+    "query": "Show me complete overview of all database tables with detailed analysis",
+    "expected_response": "Full database overview with all tables"
+  },
+  "specific_table_queries": {
+    "medicines": "Give me complete analysis of medicines table with all medicines, stock levels, and categories",
+    "patients": "Show me all patients data with consumption patterns and department assignments",
+    "suppliers": "Provide comprehensive supplier analysis with performance metrics",
+    "departments": "List all departments with responsible persons and inventory levels",
+    "stores": "Show all storage locations with current inventory status",
+    "purchases": "Analyze all purchase records with costs and supplier performance",
+    "consumption": "Display all consumption records with patient and medicine details",
+    "transfers": "Show all transfer records with department routes and quantities"
+  },
+  "cross_table_analytics": {
+    "inventory_analysis": "Analyze inventory across all stores and departments with optimization recommendations",
+    "financial_overview": "Provide complete financial analysis across purchases and consumption",
+    "performance_metrics": "Show performance metrics for suppliers, departments, and medicine categories"
+  }
+}

@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Low Stock Report - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-exclamation-triangle text-danger"></i> Low Stock Report</h1>
+    <div>
+        <a href="{{ url_for('reports.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Reports
+        </a>
+        <button type="button" class="btn btn-outline-primary" onclick="exportTableToCSV('lowStockTable', 'low_stock_report')">
+            <i class="bi bi-download"></i> Export CSV
+        </button>
+        <button type="button" class="btn btn-outline-secondary" onclick="printPage()">
+            <i class="bi bi-printer"></i> Print
+        </button>
+    </div>
+</div>
+
+<!-- Filter -->
+{% if session.role == 'admin' %}
+<div class="row mb-3">
+    <div class="col-md-4">
+        <form method="GET" action="{{ url_for('reports.low_stock_report') }}">
+            <select class="form-select" name="department" id="departmentFilter" onchange="this.form.submit()">
+                <option value="" {% if not department_filter %}selected{% endif %}>All Departments</option>
+                {% for department in departments %}
+                <option value="{{ department.id }}" {% if department_filter == department.id %}selected{% endif %}>{{ department.name }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<!-- Alert Summary -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-warning">
+            <h5><i class="bi bi-exclamation-triangle"></i> Stock Alert Summary</h5>
+            <p class="mb-0">
+                <strong>{{ low_stock_items|length }}</strong> medicine(s) are currently at or below their low stock limits.
+                Immediate restocking is recommended to avoid stockouts.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Low Stock Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="bi bi-list"></i> Low Stock Items</h5>
+    </div>
+    <div class="card-body">
+        {% if low_stock_items %}
+        <div class="table-responsive">
+            <table class="table table-hover" id="lowStockTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Medicine Name</th>
+                        <th>Form/Dosage</th>
+                        {% if session.role == 'admin' %}
+                        <th>Department</th>
+                        {% endif %}
+                        <th>Current Stock</th>
+                        <th>Low Stock Limit</th>
+                        <th>Shortage</th>
+                        <th>Status</th>
+                        <th>Supplier</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in low_stock_items %}
+                    <tr data-department-id="{{ item.department_id }}">
+                        <td>{{ loop.index }}</td>
+                        <td><strong>{{ item.medicine.name }}</strong></td>
+                        <td>{{ item.medicine.form_dosage }}</td>
+                        {% if session.role == 'admin' %}
+                        <td>
+                            {% set department = departments|selectattr('id', 'equalto', item.department_id)|first %}
+                            {{ department.name if department else 'All Stores' }}
+                        </td>
+                        {% endif %}
+                        <td>
+                            <span class="badge bg-danger">{{ item.current_stock }}</span>
+                        </td>
+                        <td>{{ item.low_stock_limit }}</td>
+                        <td>
+                            {% set shortage = item.low_stock_limit - item.current_stock %}
+                            {% if shortage > 0 %}
+                            <span class="badge bg-warning text-dark">{{ shortage }}</span>
+                            {% else %}
+                            <span class="badge bg-secondary">0</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.current_stock == 0 %}
+                            <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Out of Stock</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle"></i> Low Stock</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% set supplier = suppliers|selectattr('id', 'equalto', item.medicine.supplier_id)|first %}
+                            {{ supplier.name if supplier else 'Unknown' }}
+                        </td>
+                        <td>
+                            {% if session.role == 'admin' %}
+                            <a href="{{ url_for('purchases.add') }}?medicine_id={{ item.medicine.id }}" 
+                               class="btn btn-sm btn-primary" title="Create Purchase">
+                                <i class="bi bi-cart-plus"></i> Order
+                            </a>
+                            {% else %}
+                            <span class="text-muted">Contact Admin</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-check-circle display-4 text-success"></i>
+            <h4 class="mt-3">All Stock Levels are Good!</h4>
+            <p class="text-muted">No medicines are currently below their low stock limits.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recommendations -->
+{% if low_stock_items %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-lightbulb"></i> Recommendations</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check text-success"></i> <strong>Immediate Action:</strong> Contact suppliers for urgent restocking of out-of-stock items.</li>
+                    <li><i class="bi bi-check text-success"></i> <strong>Review Limits:</strong> Consider adjusting low stock limits based on consumption patterns.</li>
+                    <li><i class="bi bi-check text-success"></i> <strong>Supplier Diversification:</strong> Consider alternative suppliers for critical medicines.</li>
+                    <li><i class="bi bi-check text-success"></i> <strong>Automated Alerts:</strong> Set up regular monitoring to prevent future stockouts.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Print functionality
+function printReport() {
+    window.print();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,59 @@
+version: '3.8'
+services:
+  alorfmedz-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: alorfmedz-app
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=production
+      - FLASK_DEBUG=False
+      - FLASK_RUN_PORT=5001
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./backups:/app/backups
+    expose:
+      - "5001"
+    networks:
+      - alorfmedz-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nginx:
+    image: nginx:alpine
+    container_name: alorfmedz-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - ./static:/var/www/html/static:ro
+    depends_on:
+      - alorfmedz-app
+    networks:
+      - alorfmedz-network
+      - hospital_hospital_network
+      - sarafly-network
+      - abusoliman-network
+      - root_default
+
+networks:
+  alorfmedz-network:
+    driver: bridge
+  
+  # External networks from other applications
+  hospital_hospital_network:
+    external: true
+  sarafly-network:
+    external: true
+  abusoliman-network:
+    external: true
+  root_default:
+    external: true

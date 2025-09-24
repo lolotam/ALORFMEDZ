@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}Consumption Management - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-cart-dash"></i> Consumption Management</h1>
+    <div>
+        <a href="{{ url_for('consumption.add') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Record Consumption
+        </a>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="bi bi-download"></i> Export
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" onclick="exportConsumptionToCSV()">
+                    <i class="bi bi-file-earmark-spreadsheet"></i> Export Detailed CSV
+                </a></li>
+                <li><a class="dropdown-item" href="#" onclick="exportTableToCSV('consumptionTable', 'consumption_summary')">
+                    <i class="bi bi-file-earmark-text"></i> Export Summary CSV
+                </a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="row mb-3">
+    <div class="col-md-3">
+        <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" id="searchInput" placeholder="Search consumption...">
+        </div>
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" id="patientFilter">
+            <option value="">All Patients</option>
+            {% for patient in patients %}
+            <option value="{{ patient.id }}">{{ patient.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <input type="date" class="form-control" id="dateFromFilter" placeholder="From Date">
+    </div>
+    <div class="col-md-2">
+        <input type="date" class="form-control" id="dateToFilter" placeholder="To Date">
+    </div>
+    {% if session.role == 'admin' %}
+    <div class="col-md-2">
+        <select class="form-select" id="departmentFilter">
+            <option value="">All Departments</option>
+            {% for department in departments %}
+            <option value="{{ department.id }}">{{ department.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Consumption Table -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="consumptionTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Date</th>
+                        <th>Patient</th>
+                        <th>Prescribed By</th>
+                        {% if session.role == 'admin' %}
+                        <th>Department</th>
+                        {% endif %}
+                        <th>Items</th>
+                        <th>Total Quantity</th>
+                        <th>Notes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for consumption_record in consumption %}
+                    <tr data-patient-id="{{ consumption_record.patient_id }}" 
+                        data-date="{{ consumption_record.date }}"
+                        data-department-id="{{ consumption_record.department_id }}">
+                        <td><strong>{{ consumption_record.id }}</strong></td>
+                        <td>{{ consumption_record.date }}</td>
+                        <td>
+                            {% set patient = patients|selectattr('id', 'equalto', consumption_record.patient_id)|first %}
+                            {{ patient.name if patient else 'Unknown' }}
+                        </td>
+                        <td>{{ consumption_record.prescribed_by or 'N/A' }}</td>
+                        {% if session.role == 'admin' %}
+                        <td>
+                            {% set department = departments|selectattr('id', 'equalto', consumption_record.department_id)|first %}
+                            {{ department.name if department else 'Unknown' }}
+                        </td>
+                        {% endif %}
+                        <td>
+                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" 
+                                    data-bs-target="#itemsModal{{ consumption_record.id }}">
+                                <i class="bi bi-list"></i> {{ consumption_record.medicines|length }} items
+                            </button>
+                        </td>
+                        <td>
+                            <span class="badge bg-warning">{{ consumption_record.total_quantity }}</span>
+                        </td>
+                        <td>{{ consumption_record.notes[:30] }}{% if consumption_record.notes|length > 30 %}...{% endif %}</td>
+                        <td class="action-buttons">
+                            <a href="{{ url_for('consumption.edit', consumption_id=consumption_record.id) }}" 
+                               class="btn btn-sm btn-outline-primary" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{{ url_for('consumption.delete', consumption_id=consumption_record.id) }}" 
+                               class="btn btn-sm btn-outline-danger" title="Delete"
+                               onclick="return confirmDelete('Are you sure you want to delete this consumption record?')">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not consumption %}
+                    <tr>
+                        <td colspan="{% if session.role == 'admin' %}9{% else %}8{% endif %}" class="text-center text-muted">
+                            <i class="bi bi-inbox"></i> No consumption records found.
+                            <a href="{{ url_for('consumption.add') }}">Record the first consumption</a>.
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Items Modals for each consumption -->
+{% for consumption_record in consumption %}
+<div class="modal fade" id="itemsModal{{ consumption_record.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Consumption Details - {{ consumption_record.id }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong>Patient:</strong>
+                        {% set patient = patients|selectattr('id', 'equalto', consumption_record.patient_id)|first %}
+                        {{ patient.name if patient else 'Unknown' }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Date:</strong> {{ consumption_record.date }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Prescribed By:</strong> {{ consumption_record.prescribed_by or 'N/A' }}
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Medicine</th>
+                                <th>Form/Dosage</th>
+                                <th>Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for medicine_item in consumption_record.medicines %}
+                            {% set medicine = medicines|selectattr('id', 'equalto', medicine_item.medicine_id)|first %}
+                            <tr>
+                                <td>{{ medicine.name if medicine else 'Unknown' }}</td>
+                                <td>{{ medicine.form_dosage if medicine else 'N/A' }}</td>
+                                <td><span class="badge bg-warning">{{ medicine_item.quantity }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if consumption_record.notes %}
+                <div class="mt-3">
+                    <strong>Notes:</strong> {{ consumption_record.notes }}
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    searchTable('searchInput', 'consumptionTable');
+
+    // Patient filter
+    document.getElementById('patientFilter').addEventListener('change', function() {
+        const filter = this.value;
+        const rows = document.querySelectorAll('#consumptionTable tbody tr[data-patient-id]');
+
+        rows.forEach(row => {
+            const patientId = row.getAttribute('data-patient-id');
+            if (filter === '' || patientId === filter) {
+                row.style.display = 'table-row';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+
+    // Department filter (admin only)
+    const departmentFilter = document.getElementById('departmentFilter');
+    if (departmentFilter) {
+        departmentFilter.addEventListener('change', function() {
+            const filter = this.value;
+            const rows = document.querySelectorAll('#consumptionTable tbody tr[data-department-id]');
+
+            rows.forEach(row => {
+                const departmentId = row.getAttribute('data-department-id');
+                if (filter === '' || departmentId === filter) {
+                    row.style.display = 'table-row';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // Date filters
+    function filterByDate() {
+        const fromDate = document.getElementById('dateFromFilter').value;
+        const toDate = document.getElementById('dateToFilter').value;
+        const rows = document.querySelectorAll('#consumptionTable tbody tr[data-date]');
+
+        rows.forEach(row => {
+            const rowDate = row.getAttribute('data-date');
+            let show = true;
+
+            if (fromDate && rowDate < fromDate) show = false;
+            if (toDate && rowDate > toDate) show = false;
+
+            row.style.display = show ? 'table-row' : 'none';
+        });
+    }
+
+    document.getElementById('dateFromFilter').addEventListener('change', filterByDate);
+    document.getElementById('dateToFilter').addEventListener('change', filterByDate);
+
+    // Initialize bulk delete functionality
+    {% if session.role == 'admin' %}
+    initBulkDelete('consumptionTable', 'consumption records', '/consumption/bulk-delete');
+    {% endif %}
+});
+</script>
+{% endblock %}

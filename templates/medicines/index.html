@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Medicines Management - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-capsule"></i> Medicines Management</h1>
+    <div>
+        <a href="{{ url_for('medicines.add') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add Medicine
+        </a>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="bi bi-download"></i> Export
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" onclick="exportTableToCSV('medicinesTable', 'medicines')">
+                    <i class="bi bi-file-earmark-spreadsheet"></i> Export CSV
+                </a></li>
+                <li><a class="dropdown-item" href="{{ url_for('medicines.download_template') }}">
+                    <i class="bi bi-file-earmark-arrow-down"></i> Download Template
+                </a></li>
+            </ul>
+        </div>
+        <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#importModal">
+            <i class="bi bi-upload"></i> Import
+        </button>
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" id="searchInput" placeholder="Search medicines...">
+        </div>
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" id="supplierFilter">
+            <option value="">All Suppliers</option>
+            {% for supplier in suppliers %}
+            <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" id="stockFilter">
+            <option value="">All Stock Levels</option>
+            <option value="low">Low Stock</option>
+            <option value="medium">Medium Stock</option>
+            <option value="good">Good Stock</option>
+        </select>
+    </div>
+</div>
+
+<!-- Medicines Table -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="medicinesTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Medicine Name</th>
+                        <th>Supplier</th>
+                        <th>Form/Dosage</th>
+                        <th>Low Stock Limit</th>
+                        <th>Current Stock</th>
+                        <th>Status</th>
+                        <th>Expiry Date</th>
+                        <th>Batch Number</th>
+                        <th>Barcode</th>
+                        <th>Notes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for medicine in medicines %}
+                    <tr data-supplier-id="{{ medicine.supplier_id }}">
+                        <td>{{ medicine.id }}</td>
+                        <td><strong>{{ medicine.name }}</strong></td>
+                        <td>
+                            {% set supplier = suppliers|selectattr('id', 'equalto', medicine.supplier_id)|first %}
+                            {{ supplier.name if supplier else 'N/A' }}
+                        </td>
+                        <td>{{ medicine.form_dosage }}</td>
+                        <td>{{ medicine.low_stock_limit }}</td>
+                        <td>
+                            <span class="badge {% if medicine.stock_status == 'low' %}bg-danger{% elif medicine.stock_status == 'medium' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                {{ medicine.current_stock }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if medicine.stock_status == 'low' %}
+                            <span class="badge bg-danger"><i class="bi bi-exclamation-triangle"></i> Low Stock</span>
+                            {% elif medicine.stock_status == 'medium' %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-circle"></i> Medium Stock</span>
+                            {% else %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Good Stock</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if medicine.expiry_date %}
+                                <span class="{% if medicine.expiry_date < current_date %}text-danger{% elif medicine.expiry_date < warning_date %}text-warning{% endif %}">
+                                    {{ medicine.expiry_date | format_date_display if medicine.expiry_date else "" }}
+                                    {% if medicine.expiry_date < current_date %}
+                                        <i class="bi bi-exclamation-triangle-fill text-danger ms-1" title="Expired"></i>
+                                    {% elif medicine.expiry_date < warning_date %}
+                                        <i class="bi bi-exclamation-triangle text-warning ms-1" title="Expires soon"></i>
+                                    {% endif %}
+                                </span>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if medicine.batch_number %}
+                                <code>{{ medicine.batch_number }}</code>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if medicine.barcode_number %}
+                                <code>{{ medicine.barcode_number }}</code>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if medicine.notes %}
+                                {{ medicine.notes[:30] }}{% if medicine.notes|length > 30 %}...{% endif %}
+                            {% elif medicine.description %}
+                                {{ medicine.description[:30] }}{% if medicine.description|length > 30 %}...{% endif %}
+                            {% else %}
+                                <span class="text-muted">No notes</span>
+                            {% endif %}
+                        </td>
+                        <td class="action-buttons">
+                            <a href="{{ url_for('medicines.edit', medicine_id=medicine.id) }}" 
+                               class="btn btn-sm btn-outline-primary" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{{ url_for('medicines.delete', medicine_id=medicine.id) }}" 
+                               class="btn btn-sm btn-outline-danger" title="Delete"
+                               onclick="return confirmDelete('Are you sure you want to delete this medicine?')">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted">
+                            <i class="bi bi-inbox"></i> No medicines found. 
+                            <a href="{{ url_for('medicines.add') }}">Add the first medicine</a>.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Medicines</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="importForm" method="POST" enctype="multipart/form-data" action="{{ url_for('medicines.index') }}">
+                    <div class="mb-3">
+                        <label for="csvFile" class="form-label">Select CSV File</label>
+                        <input type="file" class="form-control" id="csvFile" name="csv_file" accept=".csv" required>
+                        <div class="form-text">
+                            Please use the template format. <a href="{{ url_for('medicines.download_template') }}">Download template</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="importForm" class="btn btn-primary">Import</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    searchTable('searchInput', 'medicinesTable');
+
+    // Initialize filter functionality
+    const supplierFilter = document.getElementById('supplierFilter');
+    const stockFilter = document.getElementById('stockFilter');
+    const searchInput = document.getElementById('searchInput');
+
+    function filterTable() {
+        const table = document.getElementById('medicinesTable');
+        const tbody = table.getElementsByTagName('tbody')[0];
+        const rows = tbody.getElementsByTagName('tr');
+
+        const supplierValue = supplierFilter.value;
+        const stockValue = stockFilter.value;
+        const searchValue = searchInput.value.toLowerCase();
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const cells = row.getElementsByTagName('td');
+
+            if (cells.length === 0) continue;
+
+            let showRow = true;
+
+            // Search filter
+            if (searchValue) {
+                const medicineName = cells[1].textContent.toLowerCase();
+                const supplier = cells[2].textContent.toLowerCase();
+                const form = cells[3].textContent.toLowerCase();
+                const notes = cells[7].textContent.toLowerCase();
+
+                if (!medicineName.includes(searchValue) &&
+                    !supplier.includes(searchValue) &&
+                    !form.includes(searchValue) &&
+                    !notes.includes(searchValue)) {
+                    showRow = false;
+                }
+            }
+
+            // Supplier filter
+            if (showRow && supplierValue !== '' && supplierValue !== 'All Suppliers') {
+                const supplierIdFromRow = row.getAttribute('data-supplier-id');
+                if (supplierIdFromRow !== supplierValue) {
+                    showRow = false;
+                }
+            }
+
+            // Stock level filter
+            if (showRow && stockValue !== '' && stockValue !== 'All Stock Levels') {
+                const statusCell = cells[6];
+                const statusText = statusCell.textContent.trim();
+
+                if ((stockValue === 'low' && !statusText.includes('Low Stock')) ||
+                    (stockValue === 'medium' && !statusText.includes('Medium Stock')) ||
+                    (stockValue === 'good' && !statusText.includes('Good Stock'))) {
+                    showRow = false;
+                }
+            }
+
+            row.style.display = showRow ? '' : 'none';
+        }
+    }
+
+    // Add event listeners
+    supplierFilter.addEventListener('change', filterTable);
+    stockFilter.addEventListener('change', filterTable);
+    searchInput.addEventListener('input', filterTable);
+
+    // Initialize bulk delete functionality
+    initBulkDelete('medicinesTable', 'medicines', '/medicines/bulk-delete');
+});
+</script>
+{% endblock %}

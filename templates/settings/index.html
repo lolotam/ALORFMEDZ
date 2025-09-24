@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-gear"></i> Settings</h1>
+</div>
+
+<!-- Settings Grid -->
+<div class="row">
+    {% if session.role == 'admin' %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-people display-4 text-primary mb-3"></i>
+                <h5 class="card-title">User Management</h5>
+                <p class="card-text">Manage user accounts, roles, and permissions for the pharmacy system.</p>
+                <a href="{{ url_for('settings.users') }}" class="btn btn-primary">
+                    <i class="bi bi-person-gear"></i> Manage Users
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-person-circle display-4 text-success mb-3"></i>
+                <h5 class="card-title">Profile Settings</h5>
+                <p class="card-text">Update your personal information, password, and profile picture.</p>
+                <a href="{{ url_for('auth.profile') }}" class="btn btn-success">
+                    <i class="bi bi-person"></i> Edit Profile
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-palette display-4 text-warning mb-3"></i>
+                <h5 class="card-title">Appearance</h5>
+                <p class="card-text">Customize the look and feel of your dashboard interface.</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button class="btn btn-outline-warning" onclick="setTheme('light')">
+                        <i class="bi bi-sun"></i> Light
+                    </button>
+                    <button class="btn btn-outline-warning" onclick="setTheme('dark')">
+                        <i class="bi bi-moon"></i> Dark
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-clock-history display-4 text-warning mb-3"></i>
+                <h5 class="card-title">Activity History</h5>
+                <p class="card-text">View system activity logs and user action history.</p>
+                <a href="{{ url_for('settings.history') }}" class="btn btn-warning">
+                    <i class="bi bi-clock-history"></i> View History
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-info-circle display-4 text-info mb-3"></i>
+                <h5 class="card-title">About</h5>
+                <p class="card-text">View system information, version details, and developer credits.</p>
+                <a href="{{ url_for('settings.about') }}" class="btn btn-info">
+                    <i class="bi bi-info"></i> About System
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    {% if session.role == 'admin' %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-shield-check display-4 text-secondary mb-3"></i>
+                <h5 class="card-title">Security</h5>
+                <p class="card-text">Configure security settings, backup options, and audit logs.</p>
+                {% if session.role == 'admin' %}
+                <a href="{{ url_for('settings.security') }}" class="btn btn-danger">
+                    <i class="bi bi-shield-lock"></i> Security Settings
+                </a>
+                {% else %}
+                <button class="btn btn-secondary" disabled>
+                    <i class="bi bi-shield"></i> Admin Only
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-database display-4 text-dark mb-3"></i>
+                <h5 class="card-title">Data Management</h5>
+                <p class="card-text">Backup, restore, and manage your pharmacy database. All backups are saved in CSV format for easy data portability.</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-file-earmark-spreadsheet"></i> CSV Backup
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('settings.backup_full') }}">
+                                <i class="bi bi-download"></i> Full System CSV Backup
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Individual CSV Files</h6></li>
+                            <li><a class="dropdown-item" href="{{ url_for('settings.backup_file', file_type='medicines') }}">
+                                <i class="bi bi-capsule"></i> Medicines
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('settings.backup_file', file_type='patients') }}">
+                                <i class="bi bi-person"></i> Patients
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('settings.backup_file', file_type='suppliers') }}">
+                                <i class="bi bi-truck"></i> Suppliers
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('settings.backup_file', file_type='doctors') }}">
+                                <i class="bi bi-person-badge"></i> Doctors
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('settings.backup_file', file_type='purchases') }}">
+                                <i class="bi bi-cart"></i> Purchases
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('settings.backup_file', file_type='consumption') }}">
+                                <i class="bi bi-clipboard-data"></i> Consumption
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('settings.backup_file', file_type='transfers') }}">
+                                <i class="bi bi-arrow-left-right"></i> Transfers
+                            </a></li>
+                        </ul>
+                    </div>
+                    <a href="{{ url_for('settings.restore') }}" class="btn btn-outline-dark">
+                        <i class="bi bi-upload"></i> Restore
+                    </a>
+                </div>
+                <div class="mt-2">
+                    <button class="btn btn-outline-warning btn-sm w-100" onclick="generateSampleData()">
+                        <i class="bi bi-database-add"></i> Generate Sample Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Current User Info -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-person-badge"></i> Current Session</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Username:</strong> {{ session.username }}</p>
+                        <p><strong>Role:</strong> 
+                            <span class="badge {% if session.role == 'admin' %}bg-danger{% else %}bg-primary{% endif %}">
+                                {{ session.role|title }}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        {% if session.department_id %}
+                        <p><strong>Department:</strong> 
+                            {% set user_department = departments|selectattr('id', 'equalto', session.department_id)|first %}
+                            {{ user_department.name if user_department else 'Unknown' }}
+                        </p>
+                        {% endif %}
+                        <p><strong>Login Time:</strong> {{ moment().format('YYYY-MM-DD HH:mm:ss') if moment else 'Current session' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Theme management
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-bs-theme', theme);
+    localStorage.setItem('theme', theme);
+    
+    // Update theme text in navbar
+    const themeText = document.getElementById('theme-text');
+    if (themeText) {
+        themeText.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+    }
+    
+    // Show success message
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed';
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        <i class="bi bi-check-circle"></i> Theme changed to ${theme} mode
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 3000);
+}
+
+// Highlight current theme button
+document.addEventListener('DOMContentLoaded', function() {
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    const buttons = document.querySelectorAll('[onclick*="setTheme"]');
+    
+    buttons.forEach(button => {
+        if (button.onclick.toString().includes(currentTheme)) {
+            button.classList.remove('btn-outline-warning');
+            button.classList.add('btn-warning');
+        }
+    });
+});
+
+function generateSampleData() {
+    if (confirm('This will replace all existing data with comprehensive sample data. Are you sure?')) {
+        window.location.href = '{{ url_for("settings.generate_sample_data") }}';
+    }
+}
+</script>
+{% endblock %}

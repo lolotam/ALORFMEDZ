@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory Report - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-box"></i> Inventory Report</h1>
+    <div>
+        <a href="{{ url_for('reports.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Reports
+        </a>
+        <button type="button" class="btn btn-outline-primary" onclick="exportTableToCSV('inventoryTable', 'inventory_report')">
+            <i class="bi bi-download"></i> Export CSV
+        </button>
+        <button type="button" class="btn btn-outline-secondary" onclick="printPage()">
+            <i class="bi bi-printer"></i> Print
+        </button>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="bi bi-funnel"></i> Filters</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" id="filterForm">
+            <div class="row">
+                {% if session.role == 'admin' %}
+                <div class="col-md-4">
+                    <label for="store_id" class="form-label">Store</label>
+                    <select class="form-select" id="store_id" name="store_id">
+                        <option value="">All Stores</option>
+                        {% for store in stores %}
+                        <option value="{{ store.id }}" {% if request.args.get('store_id') == store.id %}selected{% endif %}>
+                            {{ store.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <div class="col-md-4">
+                    <label for="medicine_id" class="form-label">Medicine</label>
+                    <select class="form-select" id="medicine_id" name="medicine_id">
+                        <option value="">All Medicines</option>
+                        {% for medicine in medicines %}
+                        <option value="{{ medicine.id }}" {% if request.args.get('medicine_id') == medicine.id %}selected{% endif %}>
+                            {{ medicine.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="stock_status" class="form-label">Stock Status</label>
+                    <select class="form-select" id="stock_status" name="stock_status">
+                        <option value="">All Status</option>
+                        <option value="low" {% if request.args.get('stock_status') == 'low' %}selected{% endif %}>Low Stock</option>
+                        <option value="medium" {% if request.args.get('stock_status') == 'medium' %}selected{% endif %}>Medium Stock</option>
+                        <option value="good" {% if request.args.get('stock_status') == 'good' %}selected{% endif %}>Good Stock</option>
+                        <option value="out" {% if request.args.get('stock_status') == 'out' %}selected{% endif %}>Out of Stock</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Apply Filters
+                        </button>
+                        <a href="{{ url_for('reports.inventory_report') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Clear Filters
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h4>{{ total_medicines }}</h4>
+                <p class="mb-0">Total Medicines</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h4>{{ total_stock_value }}</h4>
+                <p class="mb-0">Total Stock Units</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h4>{{ low_stock_count }}</h4>
+                <p class="mb-0">Low Stock Items</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body text-center">
+                <h4>{{ out_of_stock_count }}</h4>
+                <p class="mb-0">Out of Stock</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inventory Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="bi bi-table"></i> Current Inventory</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="inventoryTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Medicine Name</th>
+                        <th>Form/Dosage</th>
+                        {% if session.role == 'admin' %}
+                        {% for store in stores %}
+                        <th>{{ store.name }}</th>
+                        {% endfor %}
+                        <th>Total Stock</th>
+                        {% else %}
+                        <th>Current Stock</th>
+                        {% endif %}
+                        <th>Low Limit</th>
+                        <th>Status</th>
+                        <th>Supplier</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for medicine in medicines %}
+                    <tr>
+                        <td><strong>{{ loop.index }}</strong></td>
+                        <td><strong>{{ medicine.name }}</strong></td>
+                        <td>{{ medicine.form_dosage }}</td>
+                        {% if session.role == 'admin' %}
+                        {% for store in stores %}
+                        <td data-export-value="{{ store.inventory.get(medicine.id, 0) }}">
+                            {% set stock = store.inventory.get(medicine.id, 0) %}
+                            <span class="badge {% if stock <= medicine.low_stock_limit %}bg-danger{% elif stock <= medicine.low_stock_limit * 1.5 %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                {{ stock }}
+                            </span>
+                        </td>
+                        {% endfor %}
+                        <td data-export-value="{{ medicine.total_stock }}"><strong>{{ medicine.total_stock }}</strong></td>
+                        {% else %}
+                        <td data-export-value="{% set user_store = stores|selectattr('department_id', 'equalto', session.department_id)|first %}{% if user_store %}{{ user_store.inventory.get(medicine.id, 0) }}{% else %}0{% endif %}">
+                            {% set user_store = stores|selectattr('department_id', 'equalto', session.department_id)|first %}
+                            {% if user_store %}
+                                {% set stock = user_store.inventory.get(medicine.id, 0) %}
+                                {% set total_stock = stock %}
+                                <span class="badge {% if stock <= medicine.low_stock_limit %}bg-danger{% elif stock <= medicine.low_stock_limit * 1.5 %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                    {{ stock }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary">0</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                        <td>{{ medicine.low_stock_limit }}</td>
+                        <td>
+                            {% set total_stock = medicine.total_stock %}
+                            {% if total_stock == 0 %}
+                            <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Out of Stock</span>
+                            {% elif total_stock <= medicine.low_stock_limit %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle"></i> Low Stock</span>
+                            {% elif total_stock <= medicine.low_stock_limit * 1.5 %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-circle"></i> Medium Stock</span>
+                            {% else %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Good Stock</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% set supplier = suppliers|selectattr('id', 'equalto', medicine.supplier_id)|first %}
+                            {{ supplier.name if supplier else 'Unknown' }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Stock Analysis Chart -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-pie-chart"></i> Stock Status Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="stockStatusChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-bar-chart"></i> Stock Levels by Store</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="storeStockChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Dynamic filtering functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const storeFilter = document.getElementById('store_id');
+    const medicineFilter = document.getElementById('medicine_id');
+    const statusFilter = document.getElementById('stock_status');
+    const inventoryTable = document.getElementById('inventoryTable');
+    const tableRows = inventoryTable.querySelectorAll('tbody tr');
+
+    // Function to filter table rows
+    function filterTable() {
+        const selectedStore = storeFilter ? storeFilter.value.toLowerCase() : '';
+        const selectedMedicine = medicineFilter.value.toLowerCase();
+        const selectedStatus = statusFilter.value.toLowerCase();
+
+        let visibleCount = 0;
+
+        tableRows.forEach(row => {
+            const medicineName = row.querySelector('td:first-child strong').textContent.toLowerCase();
+
+            // Find the status badge specifically (it's in the Status column)
+            const cells = row.querySelectorAll('td');
+            const statusCell = Array.from(cells).find(cell => {
+                const badge = cell.querySelector('.badge');
+                return badge && (
+                    badge.textContent.includes('Good Stock') ||
+                    badge.textContent.includes('Low Stock') ||
+                    badge.textContent.includes('Medium Stock') ||
+                    badge.textContent.includes('Out of Stock')
+                );
+            });
+            const statusText = statusCell ? statusCell.querySelector('.badge').textContent.toLowerCase().trim() : '';
+
+            // Get store data (for admin users)
+            let storeMatch = true;
+            if (storeFilter && selectedStore) {
+                // For admin users, check if the selected store has stock
+                const storeCells = row.querySelectorAll('td[data-export-value]');
+                storeMatch = false;
+                storeCells.forEach((cell, index) => {
+                    if (index < storeCells.length - 1) { // Exclude total stock cell
+                        const stockValue = parseInt(cell.getAttribute('data-export-value') || '0');
+                        if (stockValue > 0) {
+                            storeMatch = true;
+                        }
+                    }
+                });
+            }
+
+            // Medicine name filter - handle both ID and name matching
+            let medicineMatch = true;
+            if (selectedMedicine) {
+                // If selectedMedicine is a number (ID), get the medicine name from the dropdown
+                const medicineSelect = document.getElementById('medicine_id');
+                const selectedOption = medicineSelect.querySelector(`option[value="${selectedMedicine}"]`);
+                if (selectedOption) {
+                    const selectedMedicineName = selectedOption.textContent.toLowerCase().trim();
+                    medicineMatch = medicineName.includes(selectedMedicineName);
+                } else {
+                    // Fallback to direct name matching
+                    medicineMatch = medicineName.includes(selectedMedicine);
+                }
+            }
+
+            // Status filter
+            let statusMatch = true;
+            if (selectedStatus) {
+                switch (selectedStatus) {
+                    case 'low':
+                        statusMatch = statusText.includes('low stock');
+                        break;
+                    case 'medium':
+                        statusMatch = statusText.includes('medium stock');
+                        break;
+                    case 'good':
+                        statusMatch = statusText.includes('good stock');
+                        break;
+                    case 'out':
+                        statusMatch = statusText.includes('out of stock');
+                        break;
+                }
+            }
+
+            // Show/hide row based on all filters
+            if (medicineMatch && statusMatch && storeMatch) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Update visible count (optional)
+        console.log(`Showing ${visibleCount} of ${tableRows.length} medicines`);
+    }
+
+    // Add event listeners to all filter dropdowns
+    if (storeFilter) {
+        storeFilter.addEventListener('change', filterTable);
+    }
+    medicineFilter.addEventListener('change', filterTable);
+    statusFilter.addEventListener('change', filterTable);
+
+    // Also add input event for real-time filtering if user types
+    medicineFilter.addEventListener('input', filterTable);
+});
+</script>
+<script>
+// Stock Status Chart
+const stockStatusCtx = document.getElementById('stockStatusChart').getContext('2d');
+new Chart(stockStatusCtx, {
+    type: 'pie',
+    data: {
+        labels: ['Good Stock', 'Medium Stock', 'Low Stock', 'Out of Stock'],
+        datasets: [{
+            data: [{{ good_stock_count }}, {{ medium_stock_count }}, {{ low_stock_count }}, {{ out_of_stock_count }}],
+            backgroundColor: [
+                'rgba(40, 167, 69, 0.8)',
+                'rgba(255, 193, 7, 0.8)',
+                'rgba(220, 53, 69, 0.8)',
+                'rgba(108, 117, 125, 0.8)'
+            ],
+            borderColor: [
+                'rgba(40, 167, 69, 1)',
+                'rgba(255, 193, 7, 1)',
+                'rgba(220, 53, 69, 1)',
+                'rgba(108, 117, 125, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Store Stock Chart (placeholder)
+const storeStockCtx = document.getElementById('storeStockChart').getContext('2d');
+new Chart(storeStockCtx, {
+    type: 'bar',
+    data: {
+        labels: ['Main Pharmacy', 'Emergency', 'ICU', 'Surgery'],
+        datasets: [{
+            label: 'Total Stock Units',
+            data: [150, 80, 60, 40],
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

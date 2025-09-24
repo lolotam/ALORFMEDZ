@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}About - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-info-circle"></i> About</h1>
+    <a href="{{ url_for('settings.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Settings
+    </a>
+</div>
+
+<!-- System Information -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-hospital"></i> Hospital Pharmacy Management System</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Version:</strong> 1.0.0</p>
+                        <p><strong>Release Date:</strong> July 2025</p>
+                        <p><strong>Technology Stack:</strong></p>
+                        <ul>
+                            <li>Frontend: HTML5, CSS3, Bootstrap 5</li>
+                            <li>Backend: Python 3, Flask</li>
+                            <li>Database: JSON Files</li>
+                            <li>Charts: Chart.js</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Features:</strong></p>
+                        <ul>
+                            <li>Medicine Inventory Management</li>
+                            <li>Patient Records</li>
+                            <li>Supplier Management</li>
+                            <li>Purchase & Consumption Tracking</li>
+                            <li>Advanced Reporting</li>
+                            <li>AI-Powered Insights</li>
+                            <li>Role-Based Access Control</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Credits -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-people"></i> Credits</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-code-slash text-primary"></i> Development Team</h6>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <i class="bi bi-person"></i>
+                            </div>
+                            <div>
+                                <strong>Waleed Mohamed</strong><br>
+                                <small class="text-muted">Lead Developer & System Architect</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-shield-check text-success"></i> Administration</h6>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="avatar bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <i class="bi bi-person-badge"></i>
+                            </div>
+                            <div>
+                                <strong>ALORF HOSPITAL</strong><br>
+                                <small class="text-muted">Hospital Administration</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- License -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-file-text"></i> License & Terms</h5>
+            </div>
+            <div class="card-body">
+                <p>This Hospital Pharmacy Management System is developed for internal use. All rights reserved.</p>
+                <p><strong>Terms of Use:</strong></p>
+                <ul>
+                    <li>This system is intended for authorized personnel only</li>
+                    <li>All data entered is confidential and must be handled according to hospital policies</li>
+                    <li>Users are responsible for maintaining the security of their login credentials</li>
+                    <li>Regular backups should be maintained by the system administrator</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Stats -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-graph-up"></i> System Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <h4 class="text-primary">{{ total_medicines }}</h4>
+                    <p class="text-muted mb-0">Total Medicines</p>
+                </div>
+                <div class="text-center mb-3">
+                    <h4 class="text-success">{{ total_patients }}</h4>
+                    <p class="text-muted mb-0">Total Patients</p>
+                </div>
+                <div class="text-center mb-3">
+                    <h4 class="text-warning">{{ total_suppliers }}</h4>
+                    <p class="text-muted mb-0">Total Suppliers</p>
+                </div>
+                <div class="text-center mb-3">
+                    <h4 class="text-info">{{ total_departments }}</h4>
+                    <p class="text-muted mb-0">Total Departments</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Support -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-headset"></i> Support</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Technical Support:</strong></p>
+                <p>For technical issues or feature requests, please contact the development team.</p>
+                
+                <p><strong>Hospital Administration:</strong></p>
+                <p>For user access and administrative issues, contact ALORF HOSPITAL administration.</p>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" onclick="showContactInfo()">
+                        <i class="bi bi-envelope"></i> Contact Support
+                    </button>
+                    <button class="btn btn-outline-info" onclick="showSystemInfo()">
+                        <i class="bi bi-info-square"></i> System Info
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contact Modal -->
+<div class="modal fade" id="contactModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-envelope"></i> Contact Information</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Development Team</h6>
+                <p>Waleed Mohamed<br>
+                Email: waleed@alorfhospital.com<br>
+                Phone: +1 (555) 123-4567</p>
+
+                <h6>Hospital Administration</h6>
+                <p>ALORF HOSPITAL<br>
+                Email: admin@alorfhospital.com<br>
+                Phone: +1 (555) 987-6543</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Info Modal -->
+<div class="modal fade" id="systemInfoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-info-square"></i> Detailed System Information</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Server Information</h6>
+                        <p><strong>Server:</strong> Flask Development Server<br>
+                        <strong>Python Version:</strong> 3.x<br>
+                        <strong>Flask Version:</strong> 2.3.3<br>
+                        <strong>Bootstrap Version:</strong> 5.3.2</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Database Information</h6>
+                        <p><strong>Type:</strong> JSON Files<br>
+                        <strong>Location:</strong> /data/<br>
+                        <strong>Last Backup:</strong> Manual<br>
+                        <strong>Size:</strong> Variable</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <h6>Browser Information</h6>
+                        <p id="browserInfo">Loading...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showContactInfo() {
+    new bootstrap.Modal(document.getElementById('contactModal')).show();
+}
+
+function showSystemInfo() {
+    // Update browser info
+    const browserInfo = `
+        <strong>User Agent:</strong> ${navigator.userAgent}<br>
+        <strong>Platform:</strong> ${navigator.platform}<br>
+        <strong>Language:</strong> ${navigator.language}<br>
+        <strong>Screen Resolution:</strong> ${screen.width}x${screen.height}<br>
+        <strong>Viewport:</strong> ${window.innerWidth}x${window.innerHeight}
+    `;
+    document.getElementById('browserInfo').innerHTML = browserInfo;
+    
+    new bootstrap.Modal(document.getElementById('systemInfoModal')).show();
+}
+</script>
+{% endblock %}

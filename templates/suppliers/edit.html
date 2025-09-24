@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Supplier - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-pencil"></i> Edit Supplier</h1>
+    <a href="{{ url_for('suppliers.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Suppliers
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Supplier Information - ID: {{ supplier.id }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Supplier Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       value="{{ supplier.name }}" required>
+                                <div class="invalid-feedback">
+                                    Please provide a supplier name.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="type" class="form-label">Type of Medicines <span class="text-danger">*</span></label>
+                                <select class="form-select" id="type" name="type" required>
+                                    <option value="">Select Type</option>
+                                    <option value="Medicine" {% if supplier.type == 'Medicine' %}selected{% endif %}>Medicine</option>
+                                    <option value="Disposable" {% if supplier.type == 'Disposable' %}selected{% endif %}>Disposable</option>
+                                    <option value="Equipment" {% if supplier.type == 'Equipment' %}selected{% endif %}>Equipment</option>
+                                    <option value="Mixed" {% if supplier.type == 'Mixed' %}selected{% endif %}>Mixed</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select a type.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="contact_person" class="form-label">Contact Person <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="contact_person" name="contact_person"
+                                       value="{{ supplier.contact_person }}" placeholder="John Smith" required>
+                                <div class="invalid-feedback">
+                                    Please provide a contact person name.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="phone" name="phone"
+                                       value="{{ supplier.phone }}" placeholder="+1234567890" required>
+                                <div class="invalid-feedback">
+                                    Please provide a phone number.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="email" name="email"
+                                       value="{{ supplier.email }}" placeholder="contact@supplier.com" required>
+                                <div class="invalid-feedback">
+                                    Please provide a valid email address.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="address" class="form-label">Address <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="address" name="address"
+                                       value="{{ supplier.address }}" placeholder="123 Business Street" required>
+                                <div class="invalid-feedback">
+                                    Please provide an address.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"
+                                  placeholder="Additional information about the supplier...">{{ supplier.notes }}</textarea>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ url_for('suppliers.index') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Update Supplier
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByTagName('form');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+</script>
+{% endblock %}

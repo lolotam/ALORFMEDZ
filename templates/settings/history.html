@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block title %}Activity History - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-clock-history"></i> Activity History</h1>
+    <div>
+        <a href="{{ url_for('settings.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Settings
+        </a>
+        <button type="button" class="btn btn-outline-primary" onclick="exportTableToCSV('historyTable', 'activity_history')">
+            <i class="bi bi-download"></i> Export CSV
+        </button>
+        {% if session.role == 'admin' %}
+        <button type="button" class="btn btn-outline-danger" onclick="clearAllHistory()">
+            <i class="bi bi-trash"></i> Clear All
+        </button>
+        <button type="button" class="btn btn-outline-warning" onclick="deleteSelectedRecords()" id="deleteSelectedBtn" style="display: none;">
+            <i class="bi bi-trash3"></i> Delete Selected
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="bi bi-funnel"></i> Filters</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" id="filterForm">
+            <div class="row">
+                {% if session.role == 'admin' %}
+                <div class="col-md-3">
+                    <label for="user_id" class="form-label">User</label>
+                    <select class="form-select" id="user_id" name="user_id">
+                        <option value="">All Users</option>
+                        {% for user in users %}
+                        <option value="{{ user.id }}" {% if request.args.get('user_id') == user.id %}selected{% endif %}>
+                            {{ user.username }} ({{ user.role }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <div class="col-md-3">
+                    <label for="action" class="form-label">Action</label>
+                    <select class="form-select" id="action" name="action">
+                        <option value="">All Actions</option>
+                        <option value="LOGIN" {% if request.args.get('action') == 'LOGIN' %}selected{% endif %}>Login</option>
+                        <option value="LOGOUT" {% if request.args.get('action') == 'LOGOUT' %}selected{% endif %}>Logout</option>
+                        <option value="CREATE" {% if request.args.get('action') == 'CREATE' %}selected{% endif %}>Create</option>
+                        <option value="UPDATE" {% if request.args.get('action') == 'UPDATE' %}selected{% endif %}>Update</option>
+                        <option value="DELETE" {% if request.args.get('action') == 'DELETE' %}selected{% endif %}>Delete</option>
+                        <option value="VIEW" {% if request.args.get('action') == 'VIEW' %}selected{% endif %}>View</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="entity_type" class="form-label">Entity Type</label>
+                    <select class="form-select" id="entity_type" name="entity_type">
+                        <option value="">All Types</option>
+                        <option value="medicine" {% if request.args.get('entity_type') == 'medicine' %}selected{% endif %}>Medicine</option>
+                        <option value="patient" {% if request.args.get('entity_type') == 'patient' %}selected{% endif %}>Patient</option>
+                        <option value="supplier" {% if request.args.get('entity_type') == 'supplier' %}selected{% endif %}>Supplier</option>
+                        <option value="purchase" {% if request.args.get('entity_type') == 'purchase' %}selected{% endif %}>Purchase</option>
+                        <option value="consumption" {% if request.args.get('entity_type') == 'consumption' %}selected{% endif %}>Consumption</option>
+                        <option value="user" {% if request.args.get('entity_type') == 'user' %}selected{% endif %}>User</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Filter
+                        </button>
+                        <a href="{{ url_for('settings.history') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Activity History Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="bi bi-table"></i> Activity Log</h5>
+    </div>
+    <div class="card-body">
+        {% if history %}
+        <div class="table-responsive">
+            <table class="table table-hover" id="historyTable">
+                <thead>
+                    <tr>
+                        {% if session.role == 'admin' %}
+                        <th>
+                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                        </th>
+                        {% endif %}
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        {% if session.role == 'admin' %}
+                        <th>Role</th>
+                        {% endif %}
+                        <th>Action</th>
+                        <th>Entity Type</th>
+                        <th>Entity ID</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in history %}
+                    <tr>
+                        {% if session.role == 'admin' %}
+                        <td>
+                            <input type="checkbox" class="record-checkbox" value="{{ entry.timestamp }}" onchange="updateDeleteButton()">
+                        </td>
+                        {% endif %}
+                        <td>
+                            <small>{{ entry.timestamp[:19].replace('T', ' ') }}</small>
+                        </td>
+                        <td>
+                            <strong>{{ entry.username }}</strong>
+                        </td>
+                        {% if session.role == 'admin' %}
+                        <td>
+                            <span class="badge {% if entry.role == 'admin' %}bg-danger{% else %}bg-primary{% endif %}">
+                                {{ entry.role|title }}
+                            </span>
+                        </td>
+                        {% endif %}
+                        <td>
+                            <span class="badge 
+                                {% if entry.action == 'LOGIN' %}bg-success
+                                {% elif entry.action == 'LOGOUT' %}bg-secondary
+                                {% elif entry.action == 'CREATE' %}bg-primary
+                                {% elif entry.action == 'UPDATE' %}bg-warning text-dark
+                                {% elif entry.action == 'DELETE' %}bg-danger
+                                {% else %}bg-info
+                                {% endif %}">
+                                {{ entry.action }}
+                            </span>
+                        </td>
+                        <td>{{ entry.entity_type|title }}</td>
+                        <td>
+                            {% if entry.entity_id %}
+                            <code>{{ entry.entity_id }}</code>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if entry.details %}
+                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" 
+                                    data-bs-target="#detailsModal{{ loop.index }}">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                            
+                            <!-- Details Modal -->
+                            <div class="modal fade" id="detailsModal{{ loop.index }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Activity Details</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <pre>{{ entry.details | tojson(indent=2) }}</pre>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <span class="text-muted">No details</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-clock-history display-4 text-muted"></i>
+            <h4 class="mt-3">No Activity Found</h4>
+            <p class="text-muted">No activity history matches your current filters.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Activity Summary -->
+{% if history %}
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-pie-chart"></i> Action Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="actionChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-bar-chart"></i> Entity Activity</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="entityChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+{% if history %}
+// Calculate action distribution
+const actions = {};
+const entities = {};
+
+{% for entry in history %}
+const action = '{{ entry.action }}';
+const entity = '{{ entry.entity_type }}';
+
+actions[action] = (actions[action] || 0) + 1;
+entities[entity] = (entities[entity] || 0) + 1;
+{% endfor %}
+
+// Action Distribution Chart
+const actionCtx = document.getElementById('actionChart').getContext('2d');
+new Chart(actionCtx, {
+    type: 'pie',
+    data: {
+        labels: Object.keys(actions),
+        datasets: [{
+            data: Object.values(actions),
+            backgroundColor: [
+                'rgba(40, 167, 69, 0.8)',   // LOGIN - green
+                'rgba(108, 117, 125, 0.8)', // LOGOUT - gray
+                'rgba(13, 110, 253, 0.8)',  // CREATE - blue
+                'rgba(255, 193, 7, 0.8)',   // UPDATE - yellow
+                'rgba(220, 53, 69, 0.8)',   // DELETE - red
+                'rgba(23, 162, 184, 0.8)'   // VIEW - cyan
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Entity Activity Chart
+const entityCtx = document.getElementById('entityChart').getContext('2d');
+new Chart(entityCtx, {
+    type: 'bar',
+    data: {
+        labels: Object.keys(entities),
+        datasets: [{
+            label: 'Activity Count',
+            data: Object.values(entities),
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+{% endif %}
+
+// Clear all history function
+function clearAllHistory() {
+    if (confirm('Are you sure you want to clear ALL activity history? This action cannot be undone.')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ url_for("settings.clear_history") }}';
+
+        // Add CSRF token if needed
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = csrfToken.getAttribute('content');
+            form.appendChild(csrfInput);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Toggle select all checkboxes
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.record-checkbox');
+
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+
+    updateDeleteButton();
+}
+
+// Update delete button visibility
+function updateDeleteButton() {
+    const checkboxes = document.querySelectorAll('.record-checkbox:checked');
+    const deleteBtn = document.getElementById('deleteSelectedBtn');
+
+    if (checkboxes.length > 0) {
+        deleteBtn.style.display = 'inline-block';
+        deleteBtn.textContent = `Delete Selected (${checkboxes.length})`;
+    } else {
+        deleteBtn.style.display = 'none';
+    }
+}
+
+// Delete selected records
+function deleteSelectedRecords() {
+    const checkboxes = document.querySelectorAll('.record-checkbox:checked');
+    const recordIds = Array.from(checkboxes).map(cb => cb.value);
+
+    if (recordIds.length === 0) {
+        alert('Please select records to delete.');
+        return;
+    }
+
+    if (confirm(`Are you sure you want to delete ${recordIds.length} selected record(s)? This action cannot be undone.`)) {
+        fetch('{{ url_for("settings.delete_history_records") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                record_ids: recordIds
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                alertDiv.innerHTML = `
+                    ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+
+                // Insert alert at the top of the content
+                const content = document.querySelector('.container-fluid');
+                content.insertBefore(alertDiv, content.firstChild);
+
+                // Reload the page after a short delay
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while deleting records.');
+        });
+    }
+}
+</script>
+{% endblock %}

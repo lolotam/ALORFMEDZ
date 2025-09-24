@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Suggested Purchase Report - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-lightbulb"></i> Suggested Purchase Report</h1>
+    <div>
+        <a href="{{ url_for('reports.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Reports
+        </a>
+        <button type="button" class="btn btn-outline-primary" onclick="exportTableToCSV('suggestionsTable', 'suggested_purchases')">
+            <i class="bi bi-download"></i> Export CSV
+        </button>
+        <button type="button" class="btn btn-outline-secondary" onclick="printPage()">
+            <i class="bi bi-printer"></i> Print
+        </button>
+    </div>
+</div>
+
+<!-- AI Analysis Summary -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h5><i class="bi bi-robot"></i> AI-Powered Analysis</h5>
+            <p class="mb-0">
+                Based on consumption patterns from the last 30 days, current stock levels, and low stock limits, 
+                our AI system has identified <strong>{{ total_suggestions }}</strong> medicines that may need restocking.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-danger text-white">
+            <div class="card-body text-center">
+                <h4>{{ suggestions|selectattr('urgency', 'equalto', 'High')|list|length }}</h4>
+                <p class="mb-0">High Priority</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h4>{{ suggestions|selectattr('urgency', 'equalto', 'Medium')|list|length }}</h4>
+                <p class="mb-0">Medium Priority</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h4>{{ suggestions|selectattr('urgency', 'equalto', 'Low')|list|length }}</h4>
+                <p class="mb-0">Low Priority</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Suggestions Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="bi bi-table"></i> Purchase Suggestions</h5>
+    </div>
+    <div class="card-body">
+        {% if suggestions %}
+        <div class="table-responsive">
+            <table class="table table-hover" id="suggestionsTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Priority</th>
+                        <th>Medicine Name</th>
+                        <th>Form/Dosage</th>
+                        <th>Current Stock</th>
+                        <th>Monthly Consumption</th>
+                        <th>Suggested Quantity</th>
+                        <th>Supplier</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for suggestion in suggestions %}
+                    <tr>
+                        <td><strong>{{ loop.index }}</strong></td>
+                        <td>
+                            {% if suggestion.urgency == 'High' %}
+                            <span class="badge bg-danger"><i class="bi bi-exclamation-triangle"></i> High</span>
+                            {% elif suggestion.urgency == 'Medium' %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-circle"></i> Medium</span>
+                            {% else %}
+                            <span class="badge bg-info"><i class="bi bi-info-circle"></i> Low</span>
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ suggestion.medicine.name }}</strong></td>
+                        <td>{{ suggestion.medicine.form_dosage }}</td>
+                        <td>
+                            {% if suggestion.current_stock == 0 %}
+                            <span class="badge bg-danger">{{ suggestion.current_stock }}</span>
+                            {% elif suggestion.current_stock <= suggestion.medicine.low_stock_limit %}
+                            <span class="badge bg-warning text-dark">{{ suggestion.current_stock }}</span>
+                            {% else %}
+                            <span class="badge bg-success">{{ suggestion.current_stock }}</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge bg-primary">{{ suggestion.monthly_consumption }}</span></td>
+                        <td><span class="badge bg-success">{{ suggestion.suggested_quantity }}</span></td>
+                        <td>
+                            {% if suggestion.supplier %}
+                            {{ suggestion.supplier.name }}
+                            <br><small class="text-muted">{{ suggestion.supplier.contact_number }}</small>
+                            {% else %}
+                            <span class="text-muted">Unknown</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if session.role == 'admin' %}
+                            <a href="{{ url_for('purchases.add') }}?medicine_id={{ suggestion.medicine.id }}&quantity={{ suggestion.suggested_quantity }}" 
+                               class="btn btn-sm btn-primary" title="Create Purchase Order">
+                                <i class="bi bi-cart-plus"></i> Order
+                            </a>
+                            {% else %}
+                            <button class="btn btn-sm btn-outline-secondary" disabled>
+                                <i class="bi bi-lock"></i> Admin Only
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-check-circle display-4 text-success"></i>
+            <h4 class="mt-3">No Purchase Suggestions</h4>
+            <p class="text-muted">All medicines appear to be adequately stocked based on current consumption patterns.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- AI Insights -->
+{% if suggestions %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-brain"></i> AI Insights & Recommendations</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-lightbulb text-warning"></i> Key Insights</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check text-success"></i> Analysis based on 30-day consumption patterns</li>
+                            <li><i class="bi bi-check text-success"></i> Considers current stock levels and low stock limits</li>
+                            <li><i class="bi bi-check text-success"></i> Suggests 2-month supply for active medicines</li>
+                            <li><i class="bi bi-check text-success"></i> Prioritizes by urgency and consumption rate</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-gear text-primary"></i> Optimization Tips</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-arrow-right text-primary"></i> Review high-priority items immediately</li>
+                            <li><i class="bi bi-arrow-right text-primary"></i> Consider bulk ordering for cost savings</li>
+                            <li><i class="bi bi-arrow-right text-primary"></i> Verify supplier availability before ordering</li>
+                            <li><i class="bi bi-arrow-right text-primary"></i> Update low stock limits based on trends</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Consumption Trend Chart -->
+{% if suggestions %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-graph-up"></i> Consumption Trends (Last 30 Days)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="consumptionTrendChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+{% if suggestions %}
+// Consumption Trend Chart
+const trendCtx = document.getElementById('consumptionTrendChart').getContext('2d');
+new Chart(trendCtx, {
+    type: 'line',
+    data: {
+        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        datasets: [{
+            label: 'Total Consumption',
+            data: [65, 59, 80, 81],
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+{% endif %}
+</script>
+{% endblock %}

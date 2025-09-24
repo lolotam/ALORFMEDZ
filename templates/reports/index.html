@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Reports Dashboard - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-graph-up"></i> Reports Dashboard</h1>
+</div>
+
+<!-- Reports Grid -->
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-cart-dash display-4 text-primary mb-3"></i>
+                <h5 class="card-title">Consumption Report</h5>
+                <p class="card-text">View consumption patterns by date, department, patient, and medicines.</p>
+                <a href="{{ url_for('reports.consumption_report') }}" class="btn btn-primary">
+                    <i class="bi bi-eye"></i> View Report
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-truck display-4 text-success mb-3"></i>
+                <h5 class="card-title">Supplier Report</h5>
+                <p class="card-text">Analyze supplier performance and medicine sourcing patterns.</p>
+                <a href="{{ url_for('reports.supplier_report') }}" class="btn btn-success">
+                    <i class="bi bi-eye"></i> View Report
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-cart-plus display-4 text-info mb-3"></i>
+                <h5 class="card-title">Purchase Report</h5>
+                <p class="card-text">Track purchases by date, supplier, medicine, and invoice number.</p>
+                <a href="{{ url_for('reports.purchase_report') }}" class="btn btn-info">
+                    <i class="bi bi-eye"></i> View Report
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-box display-4 text-warning mb-3"></i>
+                <h5 class="card-title">Inventory Report</h5>
+                <p class="card-text">Current inventory levels across all stores and departments.</p>
+                <a href="{{ url_for('reports.inventory_report') }}" class="btn btn-warning">
+                    <i class="bi bi-eye"></i> View Report
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-exclamation-triangle display-4 text-danger mb-3"></i>
+                <h5 class="card-title">Low Stock Report</h5>
+                <p class="card-text">Medicines that are at or below their low stock limits.</p>
+                <a href="{{ url_for('reports.low_stock_report') }}" class="btn btn-danger">
+                    <i class="bi bi-eye"></i> View Report
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-lightbulb display-4 text-secondary mb-3"></i>
+                <h5 class="card-title">Suggested Purchase</h5>
+                <p class="card-text">AI-powered purchase suggestions based on consumption patterns.</p>
+                <a href="{{ url_for('reports.suggested_purchase_report') }}" class="btn btn-secondary">
+                    <i class="bi bi-eye"></i> View Report
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-speedometer2"></i> Quick Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h4 class="text-primary">{{ total_medicines }}</h4>
+                        <p class="text-muted">Total Medicines</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-success">{{ total_patients }}</h4>
+                        <p class="text-muted">Total Patients</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning">{{ total_purchases }}</h4>
+                        <p class="text-muted">Total Purchases</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-info">{{ total_consumption }}</h4>
+                        <p class="text-muted">Total Consumption</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

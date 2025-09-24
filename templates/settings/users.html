@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-people"></i> User Management</h1>
+    <div>
+        <a href="{{ url_for('settings.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Settings
+        </a>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+            <i class="bi bi-person-plus"></i> Add User
+        </button>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="bi bi-table"></i> System Users</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="usersTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Department</th>
+                        <th>Status</th>
+                        <th>Last Activity</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td><code>{{ user.id }}</code></td>
+                        <td><strong>{{ user.username }}</strong></td>
+                        <td>
+                            <span class="badge {% if user.role == 'admin' %}bg-danger{% else %}bg-primary{% endif %}">
+                                {{ user.role|title }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if user.department_id %}
+                                {% set department = departments|selectattr('id', 'equalto', user.department_id)|first %}
+                                {{ department.name if department else 'Unknown' }}
+                            {% else %}
+                                <span class="text-muted">All Departments</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-success">Active</span>
+                        </td>
+                        <td>
+                            {% set activity = user_activities.get(user.id, {}) %}
+                            {% if activity.get('last_login') %}
+                                <small>{{ activity.last_login[:19].replace('T', ' ') }}</small>
+                            {% else %}
+                                <span class="text-muted">Never</span>
+                            {% endif %}
+                        </td>
+                        <td class="action-buttons">
+                            <button class="btn btn-sm btn-outline-info" onclick="viewUserActivity('{{ user.id }}', '{{ user.username }}')" title="View Activity">
+                                <i class="bi bi-clock-history"></i>
+                            </button>
+                            <a href="{{ url_for('settings.edit_user', user_id=user.id) }}"
+                               class="btn btn-sm btn-outline-primary" title="Edit User">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('settings.reset_user_password', user_id=user.id) }}"
+                                  style="display: inline;" onsubmit="return confirm('Reset password for {{ user.username }}?')" title="Reset Password">
+                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                    <i class="bi bi-key"></i>
+                                </button>
+                            </form>
+                            {% if user.username != 'admin' %}
+                            <form method="POST" action="{{ url_for('settings.delete_user_route', user_id=user.id) }}"
+                                  style="display: inline;" onsubmit="return confirm('Are you sure you want to delete user {{ user.username }}? This action cannot be undone.')" title="Delete User">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- User Statistics -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h4>{{ users|length }}</h4>
+                <p class="mb-0">Total Users</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body text-center">
+                <h4>{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</h4>
+                <p class="mb-0">Administrators</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h4>{{ users|selectattr('role', 'equalto', 'user')|list|length }}</h4>
+                <p class="mb-0">Department Users</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h4>{{ users|length }}</h4>
+                <p class="mb-0">Active Users</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions for Department Users -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for department in departments %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-light">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ department.name }}</h6>
+                                <p class="card-text small text-muted">
+                                    {% set dept_users = users|selectattr('department_id', 'equalto', department.id)|list %}
+                                    {{ dept_users|length }} user(s) assigned
+                                </p>
+                                <form method="POST" action="{{ url_for('settings.create_dept_user', department_id=department.id) }}"
+                                      style="display: inline;" onsubmit="return confirm('Create additional user for {{ department.name }}?')">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-person-plus"></i> Add Dept User
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-person-plus"></i> Add New User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('settings.add_user') }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="name" name="name">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                                <div class="form-text">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="generatePassword()">
+                                        <i class="bi bi-key"></i> Generate
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Role <span class="text-danger">*</span></label>
+                        <select class="form-select" id="role" name="role" required>
+                            <option value="">Select Role</option>
+                            <option value="admin">Administrator</option>
+                            <option value="department_user">Department User</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3" id="departmentField" style="display: none;">
+                        <label for="department_id" class="form-label">Department <span class="text-danger">*</span></label>
+                        <select class="form-select" id="department_id" name="department_id">
+                            <option value="">Select Department</option>
+                            {% for department in departments %}
+                            <option value="{{ department.id }}">{{ department.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Required for department users</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Create User
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- User Activity Modal -->
+<div class="modal fade" id="userActivityModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-clock-history"></i> User Activity</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="activityContent">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+
+// View user activity
+function viewUserActivity(userId, username) {
+    const modal = new bootstrap.Modal(document.getElementById('userActivityModal'));
+    const content = document.getElementById('activityContent');
+    
+    // Update modal title
+    document.querySelector('#userActivityModal .modal-title').innerHTML = 
+        `<i class="bi bi-clock-history"></i> Activity for ${username}`;
+    
+    // Show loading
+    content.innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    `;
+    
+    modal.show();
+    
+    // Fetch user activity (placeholder)
+    setTimeout(() => {
+        content.innerHTML = `
+            <div class="alert alert-info">
+                <h6>Activity Summary</h6>
+                <p>This feature would show detailed user activity history.</p>
+                <p>For now, you can view the full activity history in the 
+                <a href="{{ url_for('settings.history') }}?user_id=${userId}">Activity History</a> page.</p>
+            </div>
+        `;
+    }, 1000);
+}
+
+// Generate secure password
+function generatePassword() {
+    const length = 12;
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    let password = "";
+
+    // Ensure at least one character from each type
+    const lowercase = "abcdefghijklmnopqrstuvwxyz";
+    const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const numbers = "0123456789";
+    const special = "!@#$%^&*";
+
+    password += lowercase[Math.floor(Math.random() * lowercase.length)];
+    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += numbers[Math.floor(Math.random() * numbers.length)];
+    password += special[Math.floor(Math.random() * special.length)];
+
+    // Fill the rest
+    for (let i = 4; i < length; i++) {
+        password += charset[Math.floor(Math.random() * charset.length)];
+    }
+
+    // Shuffle the password
+    password = password.split('').sort(() => Math.random() - 0.5).join('');
+
+    document.getElementById('password').value = password;
+}
+
+// Show/hide department field based on role
+document.addEventListener('DOMContentLoaded', function() {
+    const roleSelect = document.getElementById('role');
+    const departmentField = document.getElementById('departmentField');
+    const departmentSelect = document.getElementById('department_id');
+
+    if (roleSelect && departmentField && departmentSelect) {
+        // Initially hide department field
+        departmentField.style.display = 'none';
+
+        // Add event listener for role changes
+        roleSelect.addEventListener('change', function() {
+            if (this.value === 'department_user') {
+                departmentField.style.display = 'block';
+                departmentSelect.required = true;
+            } else {
+                departmentField.style.display = 'none';
+                departmentSelect.required = false;
+                departmentSelect.value = '';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

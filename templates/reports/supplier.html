@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}Supplier Report - ALORF HOSPITAL{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-building"></i> Supplier Report</h2>
+                <div>
+                    <button class="btn btn-outline-primary me-2" onclick="window.print()">
+                        <i class="bi bi-printer"></i> Print Report
+                    </button>
+                    <button class="btn btn-success" onclick="exportToCSV()">
+                        <i class="bi bi-download"></i> Export CSV
+                    </button>
+                </div>
+            </div>
+
+            <!-- Report Summary Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Suppliers</h6>
+                                    <h3>{{ suppliers|length }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-building fs-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Active Suppliers</h6>
+                                    <h3>{{ active_suppliers_count }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-check-circle fs-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Purchases</h6>
+                                    <h3>{{ total_purchases }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-cart fs-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Filters -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="statusFilter" class="form-label">Filter by Status</label>
+                            <select class="form-select" id="statusFilter" onchange="filterTable()">
+                                <option value="">All Suppliers</option>
+                                <option value="active">Active Only</option>
+                                <option value="inactive">Inactive Only</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="searchInput" class="form-label">Search Suppliers</label>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search by name, contact..." onkeyup="filterTable()">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="sortBy" class="form-label">Sort By</label>
+                            <select class="form-select" id="sortBy" onchange="sortTable()">
+                                <option value="name">Name</option>
+                                <option value="purchases">Purchase Count</option>
+                                <option value="date">Registration Date</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Suppliers Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Supplier Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="suppliersTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th style="color: black;">#</th>
+                                    <th style="color: black;">Supplier Name</th>
+                                    <th style="color: black;">Contact Person</th>
+                                    <th style="color: black;">Phone</th>
+                                    <th style="color: black;">Email</th>
+                                    <th style="color: black;">Address</th>
+                                    <th style="color: black;">Total Purchases</th>
+                                    <th style="color: black;">Status</th>
+                                    <th style="color: black;">Registration Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for supplier in suppliers %}
+                                <tr data-status="{{ 'active' if supplier.get('status', 'active') == 'active' else 'inactive' }}">
+                                    <td><strong>{{ loop.index }}</strong></td>
+                                    <td><strong>{{ supplier.name }}</strong></td>
+                                    <td>{{ supplier.get('contact_person', 'N/A') }}</td>
+                                    <td>{{ supplier.get('phone', 'N/A') }}</td>
+                                    <td>{{ supplier.get('email', 'N/A') }}</td>
+                                    <td>{{ supplier.get('address', 'N/A') }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ supplier.get('purchase_count', 0) }}</span>
+                                    </td>
+                                    <td>
+                                        {% if supplier.get('status', 'active') == 'active' %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ supplier.get('created_at', 'N/A')[:10] if supplier.get('created_at') else 'N/A' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterTable() {
+    const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const table = document.getElementById('suppliersTable');
+    const rows = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const status = row.getAttribute('data-status');
+        const text = row.textContent.toLowerCase();
+        
+        let showRow = true;
+        
+        // Status filter
+        if (statusFilter && status !== statusFilter) {
+            showRow = false;
+        }
+        
+        // Search filter
+        if (searchInput && !text.includes(searchInput)) {
+            showRow = false;
+        }
+        
+        row.style.display = showRow ? '' : 'none';
+    }
+}
+
+function sortTable() {
+    const sortBy = document.getElementById('sortBy').value;
+    const table = document.getElementById('suppliersTable');
+    const tbody = table.getElementsByTagName('tbody')[0];
+    const rows = Array.from(tbody.getElementsByTagName('tr'));
+    
+    rows.sort((a, b) => {
+        let aVal, bVal;
+        
+        switch(sortBy) {
+            case 'name':
+                aVal = a.cells[0].textContent.trim();
+                bVal = b.cells[0].textContent.trim();
+                return aVal.localeCompare(bVal);
+            case 'purchases':
+                aVal = parseInt(a.cells[5].textContent.trim()) || 0;
+                bVal = parseInt(b.cells[5].textContent.trim()) || 0;
+                return bVal - aVal;
+            case 'value':
+                aVal = parseFloat(a.cells[6].textContent.replace(/[$,]/g, '')) || 0;
+                bVal = parseFloat(b.cells[6].textContent.replace(/[$,]/g, '')) || 0;
+                return bVal - aVal;
+            case 'date':
+                aVal = a.cells[8].textContent.trim();
+                bVal = b.cells[8].textContent.trim();
+                return new Date(bVal) - new Date(aVal);
+            default:
+                return 0;
+        }
+    });
+    
+    rows.forEach(row => tbody.appendChild(row));
+}
+
+function exportToCSV() {
+    const table = document.getElementById('suppliersTable');
+    const rows = table.querySelectorAll('tr:not([style*="display: none"])');
+    let csv = [];
+    
+    // Headers
+    const headers = Array.from(rows[0].cells).map(cell => cell.textContent.trim());
+    csv.push(headers.join(','));
+    
+    // Data rows
+    for (let i = 1; i < rows.length; i++) {
+        const row = Array.from(rows[i].cells).map(cell => {
+            let text = cell.textContent.trim();
+            // Clean up badge text
+            text = text.replace(/\s+/g, ' ');
+            // Escape commas
+            if (text.includes(',')) {
+                text = `"${text}"`;
+            }
+            return text;
+        });
+        csv.push(row.join(','));
+    }
+    
+    // Download
+    const csvContent = csv.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `supplier_report_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-speedometer2"></i> Dashboard</h1>
+    <div class="text-muted">
+        Welcome back, <strong>{{ session.username }}</strong>!
+    </div>
+</div>
+
+<!-- Overview Widgets -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ stats.total_medicines }}</h4>
+                        <p class="card-text">Total Medicines</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-capsule display-4"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('medicines.index') }}" class="text-white text-decoration-none">
+                    View Details <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ stats.total_patients }}</h4>
+                        <p class="card-text">Total Patients</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-person display-4"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('patients.index') }}" class="text-white text-decoration-none">
+                    View Details <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ stats.low_stock_count }}</h4>
+                        <p class="card-text">Low Stock Items</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-exclamation-triangle display-4"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('reports.low_stock_report') }}" class="text-white text-decoration-none">
+                    View Details <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ stats.total_consumption_today }}</h4>
+                        <p class="card-text">Today's Consumption</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-cart-dash display-4"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('consumption.index') }}" class="text-white text-decoration-none">
+                    View Details <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-2 mb-2">
+                        <a href="{{ url_for('medicines.add') }}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-plus-circle"></i><br>Add Medicine
+                        </a>
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <a href="{{ url_for('patients.add') }}" class="btn btn-outline-success w-100">
+                            <i class="bi bi-person-plus"></i><br>Add Patient
+                        </a>
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <a href="{{ url_for('consumption.add') }}" class="btn btn-outline-warning w-100">
+                            <i class="bi bi-cart-dash"></i><br>Record Consumption
+                        </a>
+                    </div>
+                    {% if session.role == 'admin' %}
+                    <div class="col-md-2 mb-2">
+                        <a href="{{ url_for('purchases.add') }}" class="btn btn-outline-info w-100">
+                            <i class="bi bi-cart-plus"></i><br>Add Purchase
+                        </a>
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <a href="{{ url_for('departments.add') }}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-building"></i><br>Add Department
+                        </a>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-2 mb-2">
+                        <a href="{{ url_for('reports.index') }}" class="btn btn-outline-dark w-100">
+                            <i class="bi bi-graph-up"></i><br>View Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity (placeholder for future implementation) -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-clock-history"></i> Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Recent activity will be displayed here...</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-exclamation-triangle"></i> Alerts</h5>
+            </div>
+            <div class="card-body">
+                {% if stats.low_stock_count > 0 %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    {{ stats.low_stock_count }} medicine(s) are running low on stock.
+                    <a href="{{ url_for('reports.low_stock_report') }}" class="alert-link">View Details</a>
+                </div>
+                {% else %}
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle"></i>
+                    All medicines are adequately stocked.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

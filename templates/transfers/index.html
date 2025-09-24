@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory Transfers - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-arrow-left-right"></i> Inventory Transfers</h1>
+    <div>
+        <a href="{{ url_for('stores.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Stores
+        </a>
+        <a href="{{ url_for('transfers.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> New Transfer
+        </a>
+    </div>
+</div>
+
+<!-- Transfer Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h4>{{ transfers|length }}</h4>
+                <p class="mb-0">Total Transfers</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h4>{{ transfers|selectattr('status', 'equalto', 'completed')|list|length }}</h4>
+                <p class="mb-0">Completed</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h4>{{ transfers|map(attribute='medicines')|map('length')|sum }}</h4>
+                <p class="mb-0">Total Items</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h4>{{ (transfers|selectattr('created_at')|selectattr('created_at', 'match', '.*' + moment().format('YYYY-MM-DD') + '.*')|list|length) if moment else 0 }}</h4>
+                <p class="mb-0">Today's Transfers</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transfers Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="bi bi-table"></i> Transfer History</h5>
+    </div>
+    <div class="card-body">
+        {% if transfers %}
+        <div class="table-responsive">
+            <table class="table table-hover" id="transfersTable">
+                <thead>
+                    <tr>
+                        <th>Transfer ID</th>
+                        <th>Date</th>
+                        <th>From Store</th>
+                        <th>To Store</th>
+                        <th>Items</th>
+                        <th>Requested By</th>
+                        <th>Approved By</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transfer in transfers %}
+                    <tr>
+                        <td><code>{{ transfer.id }}</code></td>
+                        <td>
+                            <small>{{ transfer.created_at[:19].replace('T', ' ') }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ transfer.source_store_name }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">{{ transfer.destination_store_name }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ transfer.medicines|length }} items</span>
+                        </td>
+                        <td>
+                            <small class="text-primary">{{ transfer.requested_by or 'N/A' }}</small>
+                        </td>
+                        <td>
+                            <small class="text-success">{{ transfer.approved_by or 'N/A' }}</small>
+                        </td>
+                        <td>
+                            <span class="badge {% if transfer.status == 'completed' %}bg-success{% else %}bg-warning{% endif %}">
+                                {{ transfer.status|title }}
+                            </span>
+                        </td>
+                        <td class="action-buttons">
+                            <a href="{{ url_for('transfers.view', transfer_id=transfer.id) }}" 
+                               class="btn btn-sm btn-outline-info" title="View Details">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-arrow-left-right display-4 text-muted"></i>
+            <h4 class="mt-3">No Transfers Found</h4>
+            <p class="text-muted">No inventory transfers have been recorded yet.</p>
+            <a href="{{ url_for('transfers.create') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Create First Transfer
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Transfers Summary -->
+{% if transfers %}
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-clock-history"></i> Recent Transfers</h5>
+            </div>
+            <div class="card-body">
+                {% for transfer in transfers[:5] %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <strong>{{ transfer.source_store_name }}</strong> → <strong>{{ transfer.destination_store_name }}</strong>
+                        <br>
+                        <small class="text-muted">{{ transfer.medicines|length }} items • {{ transfer.created_at[:10] }}</small>
+                    </div>
+                    <span class="badge bg-success">{{ transfer.status|title }}</span>
+                </div>
+                {% if not loop.last %}<hr>{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-graph-up"></i> Transfer Analytics</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="transferChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+{% if transfers %}
+// Transfer Analytics Chart
+const transferData = {};
+{% for transfer in transfers %}
+const date = '{{ transfer.created_at[:10] }}';
+transferData[date] = (transferData[date] || 0) + 1;
+{% endfor %}
+
+const ctx = document.getElementById('transferChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: Object.keys(transferData).slice(-7), // Last 7 days
+        datasets: [{
+            label: 'Daily Transfers',
+            data: Object.values(transferData).slice(-7),
+            borderColor: 'rgba(54, 162, 235, 1)',
+            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+{% endif %}
+</script>
+{% endblock %}

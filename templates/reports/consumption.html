@@ -1,0 +1,402 @@
+{% extends "base.html" %}
+
+{% block title %}Consumption Report - Hospital Pharmacy Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-cart-dash"></i> Consumption Report</h1>
+    <div>
+        <a href="{{ url_for('reports.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Reports
+        </a>
+        <button type="button" class="btn btn-outline-primary" onclick="exportConsumptionReportToCSV()">
+            <i class="bi bi-download"></i> Export CSV
+        </button>
+        <button type="button" class="btn btn-outline-secondary" onclick="printPage()">
+            <i class="bi bi-printer"></i> Print
+        </button>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="bi bi-funnel"></i> Filters</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" id="filterForm">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="date_from" class="form-label">From Date</label>
+                    <input type="date" class="form-control" id="date_from" name="date_from" value="{{ request.args.get('date_from', '') }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="date_to" class="form-label">To Date</label>
+                    <input type="date" class="form-control" id="date_to" name="date_to" value="{{ request.args.get('date_to', '') }}">
+                </div>
+                {% if session.role == 'admin' %}
+                <div class="col-md-3">
+                    <label for="department_id" class="form-label">Department</label>
+                    <select class="form-select" id="department_id" name="department_id">
+                        <option value="">All Departments</option>
+                        {% for department in departments %}
+                        <option value="{{ department.id }}" {% if request.args.get('department_id') == department.id %}selected{% endif %}>
+                            {{ department.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <div class="col-md-3">
+                    <label for="patient_id" class="form-label">Patient</label>
+                    <select class="form-select" id="patient_id" name="patient_id">
+                        <option value="">All Patients</option>
+                        {% for patient in patients %}
+                        <option value="{{ patient.id }}" {% if request.args.get('patient_id') == patient.id %}selected{% endif %}>
+                            {{ patient.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-3">
+                    <label for="medicine_id" class="form-label">Medicine</label>
+                    <select class="form-select" id="medicine_id" name="medicine_id">
+                        <option value="">All Medicines</option>
+                        {% for medicine in medicines %}
+                        <option value="{{ medicine.id }}" {% if request.args.get('medicine_id') == medicine.id %}selected{% endif %}>
+                            {{ medicine.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-9">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Apply Filters
+                        </button>
+                        <a href="{{ url_for('reports.consumption_report') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Clear Filters
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h4>{{ consumption_data|length }}</h4>
+                <p class="mb-0">Total Records</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h4>{{ total_quantity }}</h4>
+                <p class="mb-0">Total Quantity</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h4>{{ unique_patients }}</h4>
+                <p class="mb-0">Unique Patients</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h4>{{ unique_medicines }}</h4>
+                <p class="mb-0">Unique Medicines</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Consumption Data Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="bi bi-table"></i> Consumption Data</h5>
+    </div>
+    <div class="card-body">
+        {% if consumption_data %}
+        <div class="table-responsive">
+            <table class="table table-hover" id="consumptionReportTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Date</th>
+                        <th>Patient</th>
+                        {% if session.role == 'admin' %}
+                        <th>Department</th>
+                        {% endif %}
+                        <th>Medicine</th>
+                        <th>Form/Dosage</th>
+                        <th>Quantity</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set row_counter = [0] %}
+                    {% for record in consumption_data %}
+                    {% for medicine_item in record.medicines %}
+                    {% set _ = row_counter.append(row_counter.pop() + 1) %}
+                    {% set medicine = medicines|selectattr('id', 'equalto', medicine_item.medicine_id)|first %}
+                    {% set patient = patients|selectattr('id', 'equalto', record.patient_id)|first %}
+                    {% set department = departments|selectattr('id', 'equalto', record.department_id)|first %}
+                    <tr data-date="{{ record.date }}"
+                        data-patient-id="{{ record.patient_id }}"
+                        data-department-id="{{ record.department_id }}"
+                        data-medicine-id="{{ medicine_item.medicine_id }}">
+                        <td>{{ row_counter[0] }}</td>
+                        <td>{{ record.date }}</td>
+                        <td>{{ patient.name if patient else 'Unknown' }}</td>
+                        {% if session.role == 'admin' %}
+                        <td>{{ department.name if department else 'Unknown' }}</td>
+                        {% endif %}
+                        <td>{{ medicine.name if medicine else 'Unknown' }}</td>
+                        <td>{{ medicine.form_dosage if medicine else 'N/A' }}</td>
+                        <td><span class="badge bg-warning">{{ medicine_item.quantity }}</span></td>
+                        <td>{{ record.notes[:50] }}{% if record.notes|length > 50 %}...{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                    {% endfor %}
+                </tbody>
+                <tfoot id="totalRow" style="display: none;">
+                    <tr class="table-info">
+                        <td><strong>Total</strong></td>
+                        <td></td>
+                        <td></td>
+                        {% if session.role == 'admin' %}
+                        <td></td>
+                        {% endif %}
+                        <td></td>
+                        <td></td>
+                        <td><span class="badge bg-success" id="totalQuantity">0</span></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox display-4 text-muted"></i>
+            <h4 class="mt-3">No Consumption Data Found</h4>
+            <p class="text-muted">Try adjusting your filters or check if there are any consumption records.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Charts Section -->
+{% if consumption_data %}
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-bar-chart"></i> Top Medicines by Quantity</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="topMedicinesChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-pie-chart"></i> Consumption by Department</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="departmentChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Set default date range (last 30 days) and setup dynamic filtering
+document.addEventListener('DOMContentLoaded', function() {
+    const dateFrom = document.getElementById('date_from');
+    const dateTo = document.getElementById('date_to');
+
+    if (!dateFrom.value) {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        dateFrom.value = thirtyDaysAgo.toISOString().split('T')[0];
+    }
+
+    if (!dateTo.value) {
+        const today = new Date();
+        dateTo.value = today.toISOString().split('T')[0];
+    }
+
+    // Add event listeners for dynamic filtering
+    const departmentSelect = document.getElementById('department_id');
+    const patientSelect = document.getElementById('patient_id');
+    const medicineSelect = document.getElementById('medicine_id');
+
+    if (dateFrom) dateFrom.addEventListener('change', applyFilters);
+    if (dateTo) dateTo.addEventListener('change', applyFilters);
+    if (departmentSelect) departmentSelect.addEventListener('change', applyFilters);
+    if (patientSelect) patientSelect.addEventListener('change', applyFilters);
+    if (medicineSelect) medicineSelect.addEventListener('change', applyFilters);
+});
+
+// Dynamic filtering functionality
+function applyFilters() {
+    const dateFrom = document.getElementById('date_from').value;
+    const dateTo = document.getElementById('date_to').value;
+    const departmentId = document.getElementById('department_id') ? document.getElementById('department_id').value : '';
+    const patientId = document.getElementById('patient_id') ? document.getElementById('patient_id').value : '';
+    const medicineId = document.getElementById('medicine_id') ? document.getElementById('medicine_id').value : '';
+
+    const rows = document.querySelectorAll('#consumptionReportTable tbody tr');
+    let visibleRows = 0;
+    let totalQuantity = 0;
+    const uniquePatients = new Set();
+    const uniqueMedicines = new Set();
+
+    rows.forEach(row => {
+        const rowDate = row.getAttribute('data-date');
+        const rowPatientId = row.getAttribute('data-patient-id');
+        const rowDepartmentId = row.getAttribute('data-department-id');
+        const rowMedicineId = row.getAttribute('data-medicine-id');
+        const rowQuantity = parseInt(row.cells[row.cells.length - 2].textContent.replace(/\D/g, '')) || 0;
+
+        let showRow = true;
+
+        // Date filters
+        if (dateFrom && rowDate < dateFrom) showRow = false;
+        if (dateTo && rowDate > dateTo) showRow = false;
+
+        // Department filter (admin only)
+        if (departmentId && rowDepartmentId !== departmentId) {
+            showRow = false;
+        }
+
+        // Patient filter
+        if (patientId && rowPatientId !== patientId) {
+            showRow = false;
+        }
+
+        // Medicine filter
+        if (medicineId && rowMedicineId !== medicineId) {
+            showRow = false;
+        }
+
+        if (showRow) {
+            row.style.display = '';
+            visibleRows++;
+            totalQuantity += rowQuantity;
+            uniquePatients.add(rowPatientId);
+            uniqueMedicines.add(rowMedicineId);
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Update summary statistics
+    updateSummaryStats(visibleRows, totalQuantity, uniquePatients.size, uniqueMedicines.size);
+
+    // Show/hide total row and update total quantity when filtering by specific medicine
+    const totalRow = document.getElementById('totalRow');
+    const totalQuantityElement = document.getElementById('totalQuantity');
+
+    if (medicineId && medicineId !== '') {
+        // Show total row when filtering by specific medicine
+        totalRow.style.display = '';
+        totalQuantityElement.textContent = totalQuantity;
+    } else {
+        // Hide total row when not filtering by specific medicine
+        totalRow.style.display = 'none';
+    }
+}
+
+function updateSummaryStats(totalRecords, totalQuantity, uniquePatients, uniqueMedicines) {
+    // Update the summary cards
+    const summaryCards = document.querySelectorAll('.card h4');
+    if (summaryCards.length >= 4) {
+        summaryCards[0].textContent = totalRecords;
+        summaryCards[1].textContent = totalQuantity;
+        summaryCards[2].textContent = uniquePatients;
+        summaryCards[3].textContent = uniqueMedicines;
+    }
+}
+
+// Export functionality
+function exportToCSV() {
+    exportTableToCSV('consumptionReportTable', 'consumption_report');
+}
+
+// Charts (placeholder - would need actual data processing)
+{% if consumption_data %}
+// Top Medicines Chart
+const topMedicinesCtx = document.getElementById('topMedicinesChart').getContext('2d');
+new Chart(topMedicinesCtx, {
+    type: 'bar',
+    data: {
+        labels: ['Medicine 1', 'Medicine 2', 'Medicine 3', 'Medicine 4', 'Medicine 5'],
+        datasets: [{
+            label: 'Quantity Consumed',
+            data: [12, 19, 3, 5, 2],
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Department Chart
+const departmentCtx = document.getElementById('departmentChart').getContext('2d');
+new Chart(departmentCtx, {
+    type: 'pie',
+    data: {
+        labels: ['Main Pharmacy', 'Emergency', 'ICU', 'Surgery'],
+        datasets: [{
+            data: [30, 20, 25, 25],
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 205, 86, 0.2)',
+                'rgba(75, 192, 192, 0.2)'
+            ],
+            borderColor: [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 205, 86, 1)',
+                'rgba(75, 192, 192, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+{% endif %}
+</script>
+{% endblock %}
