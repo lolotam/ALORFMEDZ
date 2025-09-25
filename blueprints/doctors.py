@@ -194,6 +194,20 @@ def edit(doctor_id):
         flash('Doctor not found.', 'error')
         return redirect(url_for('doctors.index'))
 
+    # Transform old data format to new format for backward compatibility
+    if 'name' in doctor and 'dr_name' not in doctor:
+        doctor['dr_name'] = doctor['name']
+    if 'specialization' in doctor and 'specialist' not in doctor:
+        doctor['specialist'] = doctor['specialization']
+    # Add default values for missing fields
+    doctor.setdefault('gender', '')
+    doctor.setdefault('nationality', '')
+    doctor.setdefault('position', '')
+    doctor.setdefault('type', '')
+    doctor.setdefault('mobile_no', doctor.get('phone', ''))
+    doctor.setdefault('email', '')
+    doctor.setdefault('note', doctor.get('notes', ''))
+
     if request.method == 'POST':
         # Get form data
         updated_data = {

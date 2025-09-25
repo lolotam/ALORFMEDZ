@@ -58,9 +58,20 @@ class PhotoGallery {
         try {
             this.showLoading(true);
 
-            // For now, we'll create a placeholder since we don't have a photos API endpoint yet
-            // In the future, this would fetch from /photos/list/{category}?entity_id={entityId}
-            this.photos = [];
+            // Build API endpoint URL
+            let url = `/photos/list/${this.options.category}`;
+            if (this.options.entityId) {
+                url += `?entity_id=${this.options.entityId}`;
+            }
+
+            const response = await fetch(url);
+            const result = await response.json();
+
+            if (result.success) {
+                this.photos = result.photos || [];
+            } else {
+                throw new Error(result.message || 'Failed to load photos');
+            }
 
             this.renderPhotos();
             this.showLoading(false);

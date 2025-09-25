@@ -404,3 +404,57 @@ def download_template():
         mimetype='text/csv',
         headers={'Content-Disposition': 'attachment; filename=medicines_template.csv'}
     )
+
+@medicines_bp.route('/api/<medicine_id>')
+@login_required
+def get_medicine_api(medicine_id):
+    """Get medicine details for API consumption"""
+    try:
+        medicines = get_medicines()
+        suppliers = get_suppliers()
+        stores = get_stores()
+
+        # Find the medicine
+        medicine = next((m for m in medicines if m['id'] == medicine_id), None)
+        if not medicine:
+            return jsonify({'error': 'Medicine not found'}), 404
+
+        # Get supplier name
+        supplier = next((s for s in suppliers if s['id'] == medicine.get('supplier_id')), None)
+
+        # Calculate current stock
+        current_stock = 0
+        stock_status = 'good'
+        for store in stores:
+            inventory = store.get('inventory', {})
+            current_stock += inventory.get(medicine_id, 0)
+
+        # Determine stock status
+        low_stock_limit = int(medicine.get('low_stock_limit', 0))
+        if current_stock <= low_stock_limit:
+            stock_status = 'low'
+        elif current_stock <= low_stock_limit * 2:
+            stock_status = 'medium'
+        else:
+            stock_status = 'good'
+
+        # Prepare response data
+        response_data = {
+            'id': medicine['id'],
+            'name': medicine['name'],
+            'supplier_id': medicine.get('supplier_id'),
+            'supplier_name': supplier['name'] if supplier else 'N/A',
+            'form_dosage': medicine.get('form_dosage'),
+            'low_stock_limit': medicine.get('low_stock_limit'),
+            'notes': medicine.get('notes') or medicine.get('description'),
+            'expiry_date': medicine.get('expiry_date'),
+            'batch_number': medicine.get('batch_number'),
+            'barcode_number': medicine.get('barcode_number'),
+            'current_stock': current_stock,
+            'stock_status': stock_status
+        }
+
+        return jsonify(response_data), 200
+
+    except Exception as e:
+        return jsonify({'error': f'Error fetching medicine: {str(e)}'}), 500

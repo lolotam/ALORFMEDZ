@@ -252,6 +252,29 @@ body {
     box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
 
+/* Fix dropdown transparency issues */
+.form-select {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+}
+
+.form-select option {
+    background-color: var(--bs-body-bg) !important;
+    color: var(--bs-body-color) !important;
+    opacity: 1 !important;
+}
+
+/* Ensure dropdown options are visible in both light and dark themes */
+[data-bs-theme="light"] .form-select option {
+    background-color: #ffffff !important;
+    color: #212529 !important;
+}
+
+[data-bs-theme="dark"] .form-select option {
+    background-color: #212529 !important;
+    color: #dee2e6 !important;
+}
+
 /* Buttons */
 .btn {
     border-radius: 6px;

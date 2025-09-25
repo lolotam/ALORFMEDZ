@@ -242,6 +242,67 @@ def cleanup_old_photos():
     except Exception as e:
         return jsonify({'success': False, 'message': f'Cleanup error: {str(e)}'}), 500
 
+@photos_bp.route('/list/<category>')
+@login_required
+def list_photos(category):
+    """List photos for a specific category and optionally entity_id"""
+    try:
+        # Validate category
+        allowed_categories = ['medicines', 'patients', 'suppliers', 'departments', 'profiles']
+        if category not in allowed_categories:
+            return jsonify({'success': False, 'message': 'Invalid category'}), 400
+
+        entity_id = request.args.get('entity_id')
+
+        from utils.upload import UPLOAD_FOLDER
+        import glob
+
+        category_path = os.path.join(UPLOAD_FOLDER, category)
+        photos = []
+
+        if os.path.exists(category_path):
+            # Pattern to match files
+            if entity_id:
+                # Look for files that start with entity_id_
+                pattern = os.path.join(category_path, f"{entity_id}_*")
+            else:
+                # List all files in category
+                pattern = os.path.join(category_path, "*")
+
+            files = glob.glob(pattern)
+
+            for file_path in files:
+                if os.path.isfile(file_path):
+                    filename = os.path.basename(file_path)
+                    # Skip thumbnails (they typically have _thumb suffix)
+                    if '_thumb' not in filename:
+                        file_size = os.path.getsize(file_path)
+                        file_stats = os.stat(file_path)
+
+                        # Check if thumbnail exists
+                        thumb_path = os.path.join(UPLOAD_FOLDER, 'thumbnails', f"thumb_{filename}")
+                        has_thumbnail = os.path.exists(thumb_path)
+
+                        photo_info = {
+                            'filename': filename,
+                            'original_filename': filename,
+                            'url': f'/photos/view/{category}/{filename}',
+                            'thumbnail_url': f'/photos/thumbnail/thumb_{filename}' if has_thumbnail else f'/photos/view/{category}/{filename}',
+                            'file_size': file_size,
+                            'upload_date': file_stats.st_mtime,
+                            'has_thumbnail': has_thumbnail
+                        }
+                        photos.append(photo_info)
+
+        return jsonify({
+            'success': True,
+            'photos': photos,
+            'count': len(photos)
+        }), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Error listing photos: {str(e)}'}), 500
+
 @photos_bp.route('/stats')
 @login_required
 def get_upload_stats():
