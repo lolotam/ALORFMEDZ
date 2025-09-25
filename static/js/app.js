@@ -145,6 +145,210 @@ function hideLoading(buttonId, originalText) {
     }
 }
 
+// Bulk Delete Functionality
+function initBulkDelete(tableId, moduleName, deleteUrl) {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+
+    // Add checkboxes to table header and rows
+    addBulkDeleteCheckboxes(table);
+
+    // Add bulk delete controls
+    addBulkDeleteControls(table, moduleName, deleteUrl);
+
+    // Set up event listeners
+    setupBulkDeleteEventListeners(table, moduleName, deleteUrl);
+}
+
+function addBulkDeleteCheckboxes(table) {
+    // Add header checkbox
+    const headerRow = table.querySelector('thead tr');
+    if (headerRow && !headerRow.querySelector('.bulk-select-header')) {
+        const headerCheckbox = document.createElement('th');
+        headerCheckbox.innerHTML = '<input type="checkbox" class="form-check-input bulk-select-header" id="selectAll" title="Select All">';
+        headerRow.insertBefore(headerCheckbox, headerRow.firstChild);
+    }
+
+    // Add row checkboxes
+    const bodyRows = table.querySelectorAll('tbody tr');
+    bodyRows.forEach((row, index) => {
+        if (!row.querySelector('.bulk-select')) {
+            const checkbox = document.createElement('td');
+            const firstCell = row.querySelector('td');
+            const rowId = firstCell ? firstCell.textContent.trim() : index;
+            checkbox.innerHTML = `<input type="checkbox" class="form-check-input bulk-select" value="${rowId}">`;
+            row.insertBefore(checkbox, row.firstChild);
+        }
+    });
+}
+
+function addBulkDeleteControls(table, moduleName, deleteUrl) {
+    // Check if controls already exist
+    if (document.getElementById('bulkDeleteControls')) return;
+
+    const controlsHtml = `
+        <div id="bulkDeleteControls" class="mb-3" style="display: none;">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-info"><span id="selectedCount">0</span> selected</span>
+                <button type="button" class="btn btn-danger btn-sm" id="bulkDeleteBtn">
+                    <i class="bi bi-trash"></i> Delete Selected
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" id="bulkClearBtn">
+                    Clear Selection
+                </button>
+            </div>
+        </div>
+    `;
+
+    // Insert before the table
+    table.insertAdjacentHTML('beforebegin', controlsHtml);
+}
+
+function setupBulkDeleteEventListeners(table, moduleName, deleteUrl) {
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const bulkSelects = table.querySelectorAll('.bulk-select');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const bulkClearBtn = document.getElementById('bulkClearBtn');
+    const selectedCount = document.getElementById('selectedCount');
+    const bulkControls = document.getElementById('bulkDeleteControls');
+
+    // Select All functionality
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            bulkSelects.forEach(checkbox => {
+                if (!checkbox.disabled) {
+                    checkbox.checked = this.checked;
+                }
+            });
+            updateBulkDeleteControls();
+        });
+    }
+
+    // Individual checkbox functionality
+    bulkSelects.forEach(checkbox => {
+        checkbox.addEventListener('change', updateBulkDeleteControls);
+    });
+
+    // Clear selection button
+    if (bulkClearBtn) {
+        bulkClearBtn.addEventListener('click', function() {
+            bulkSelects.forEach(checkbox => checkbox.checked = false);
+            if (selectAllCheckbox) selectAllCheckbox.checked = false;
+            updateBulkDeleteControls();
+        });
+    }
+
+    // Bulk delete button
+    if (bulkDeleteBtn) {
+        bulkDeleteBtn.addEventListener('click', function() {
+            const checkedBoxes = table.querySelectorAll('.bulk-select:checked');
+            const selectedIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+            if (selectedIds.length === 0) {
+                alert('Please select items to delete.');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to delete ${selectedIds.length} selected items? This action cannot be undone.`)) {
+                performBulkDelete(selectedIds, deleteUrl, moduleName);
+            }
+        });
+    }
+
+    function updateBulkDeleteControls() {
+        const checkedBoxes = table.querySelectorAll('.bulk-select:checked');
+        selectedCount.textContent = checkedBoxes.length;
+
+        if (checkedBoxes.length > 0) {
+            bulkControls.style.display = 'block';
+        } else {
+            bulkControls.style.display = 'none';
+        }
+
+        // Update select all checkbox state
+        if (selectAllCheckbox) {
+            const totalCheckboxes = bulkSelects.length;
+            const checkedCheckboxes = checkedBoxes.length;
+            selectAllCheckbox.indeterminate = checkedCheckboxes > 0 && checkedCheckboxes < totalCheckboxes;
+            selectAllCheckbox.checked = checkedCheckboxes === totalCheckboxes && totalCheckboxes > 0;
+        }
+    }
+}
+
+function performBulkDelete(selectedIds, deleteUrl, moduleName) {
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const originalText = bulkDeleteBtn.innerHTML;
+
+    // Show loading
+    bulkDeleteBtn.disabled = true;
+    bulkDeleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Deleting...';
+
+    fetch(deleteUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ ids: selectedIds })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            showAlert('success', data.message);
+
+            // Remove deleted rows from table
+            selectedIds.forEach(id => {
+                const checkbox = document.querySelector(`input.bulk-select[value="${id}"]`);
+                if (checkbox) {
+                    const row = checkbox.closest('tr');
+                    if (row) row.remove();
+                }
+            });
+
+            // Update controls
+            const bulkControls = document.getElementById('bulkDeleteControls');
+            if (bulkControls) bulkControls.style.display = 'none';
+
+            // Reset select all
+            const selectAll = document.getElementById('selectAll');
+            if (selectAll) selectAll.checked = false;
+
+        } else {
+            showAlert('error', data.message || 'Failed to delete selected items.');
+        }
+    })
+    .catch(error => {
+        console.error('Bulk delete error:', error);
+        showAlert('error', 'An error occurred while deleting items.');
+    })
+    .finally(() => {
+        // Reset button
+        bulkDeleteBtn.disabled = false;
+        bulkDeleteBtn.innerHTML = originalText;
+    });
+}
+
+function showAlert(type, message) {
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+
+    // Find a container to show the alert
+    const container = document.querySelector('.container') || document.querySelector('.container-fluid') || document.body;
+    container.insertAdjacentHTML('afterbegin', alertHtml);
+
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        const alert = container.querySelector('.alert');
+        if (alert) alert.remove();
+    }, 5000);
+}
+
 // Auto-hide alerts after 5 seconds
 document.addEventListener('DOMContentLoaded', function() {
     const alerts = document.querySelectorAll('.alert');
