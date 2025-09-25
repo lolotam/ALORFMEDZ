@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__ssh-mcp__exec",
+      "Bash(git add:*)",
+      "WebFetch(domain:alorfmedz.com)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

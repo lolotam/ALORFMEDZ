@@ -26,6 +26,7 @@ class Config:
     # Application Settings
     JSON_SORT_KEYS = False
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file upload
+    PORT = int(os.environ.get('PORT', '5045'))
 
     # Database
     DATA_DIR = os.environ.get('DATA_DIR', 'data')

@@ -97,6 +97,7 @@ def init_database():
         ],
         'medicines': [],
         'patients': [],
+        'doctors': [],
         'suppliers': [],
         'departments': [
             {

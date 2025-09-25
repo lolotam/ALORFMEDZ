@@ -146,8 +146,27 @@ def export_inventory():
 @restrict_department_user_action('delete')
 @admin_required
 def delete(store_id):
-    """Delete store only (admin only - restricted for department users)"""
-    success, message = delete_store(store_id)
+    """Delete store with cascading delete of department and assigned users (admin only)"""
+    # Get store info to find department
+    stores = get_stores()
+    store_to_delete = next((s for s in stores if s['id'] == store_id), None)
+
+    if not store_to_delete:
+        flash('Store not found!', 'error')
+        return redirect(url_for('stores.index'))
+
+    # Prevent deletion of main store
+    if store_id == '01':
+        flash('Cannot delete main store!', 'error')
+        return redirect(url_for('stores.index'))
+
+    department_id = store_to_delete.get('department_id')
+    if not department_id:
+        # If store has no department, just delete the store
+        success, message = delete_store(store_id)
+    else:
+        # Use cascading delete that removes department and assigned users
+        success, message = delete_department_and_store(department_id)
 
     if success:
         flash(message, 'success')

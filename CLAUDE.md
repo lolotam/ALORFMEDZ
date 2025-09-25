@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 # Start the Flask development server
 python app.py
-# Application runs on http://127.0.0.1:5000
+# Application runs on http://127.0.0.1:5045
 ```
 
 ### Testing
@@ -23,8 +23,8 @@ python test_complete_workflow.py
 ```bash
 # Build and run with Docker
 docker build -t alorfmdz .
-docker run -p 5001:5001 alorfmdz
-# Application runs on port 5001 in Docker
+docker run -p 5045:5045 alorfmdz
+# Application runs on port 5045 in Docker
 ```
 
 ### Database Utilities

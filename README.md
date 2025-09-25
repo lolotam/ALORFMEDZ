@@ -60,7 +60,7 @@ A comprehensive web-based pharmacy management system for hospitals, built with F
    ```
 
 5. **Access the system**
-   - Open browser: http://localhost:5000
+   - Open browser: http://localhost:5045
    - Default credentials:
      - Admin: `username: admin`, `password: @Xx123456789xX@`
      - Department User: `username: pharmacy`, `password: pharmacy123`
@@ -72,10 +72,10 @@ A comprehensive web-based pharmacy management system for hospitals, built with F
 docker build -t hospital-pharmacy .
 
 # Run the container
-docker run -p 5001:5001 hospital-pharmacy
+docker run -p 5045:5045 hospital-pharmacy
 ```
 
-Access at: http://localhost:5001
+Access at: http://localhost:5045
 
 ## Production Deployment
 

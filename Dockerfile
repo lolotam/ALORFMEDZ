@@ -29,15 +29,15 @@ RUN mkdir -p /app/data /app/logs /app/backups && \
 
 USER appuser
 
-# Expose port 5001 to avoid conflicts
-EXPOSE 5001
+# Expose port 5045 to avoid conflicts
+EXPOSE 5045
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:5001/ || exit 1
+  CMD curl -f http://localhost:5045/ || exit 1
 
 # Set environment variable for Flask port
-ENV FLASK_RUN_PORT=5001
+ENV FLASK_RUN_PORT=5045
 
-# Run application on port 5001
-CMD ["python", "-c", "from app import create_app; app = create_app(); app.run(debug=False, host='0.0.0.0', port=5001)"]
+# Run application on port 5045
+CMD ["python", "-c", "from app import create_app; app = create_app(); app.run(debug=False, host='0.0.0.0', port=5045)"]

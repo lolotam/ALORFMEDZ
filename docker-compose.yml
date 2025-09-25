@@ -9,17 +9,17 @@ services:
     environment:
       - FLASK_ENV=production
       - FLASK_DEBUG=False
-      - FLASK_RUN_PORT=5001
+      - FLASK_RUN_PORT=5045
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
       - ./backups:/app/backups
     expose:
-      - "5001"
+      - "5045"
     networks:
       - alorfmedz-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5001/"]
+      test: ["CMD", "curl", "-f", "http://localhost:5045/"]
       interval: 30s
       timeout: 10s
       retries: 3
