@@ -225,7 +225,7 @@ class PhotoUpload {
 
             // Upload with progress tracking
             const response = await this.uploadWithProgress(endpoint, formData);
-            const result = await response.json();
+            const result = JSON.parse(response.responseText);
 
             if (result.success) {
                 this.showProgress(false);

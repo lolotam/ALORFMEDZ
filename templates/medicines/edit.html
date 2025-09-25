@@ -124,7 +124,7 @@
                                 <div class="collapse mt-3" id="uploadNewPhotos">
                                     <hr>
                                     <h6>Upload New Photos</h6>
-                                    <div id="medicine-photo-upload"></div>
+                                    <div id="medicine"></div>
                                 </div>
                             </div>
                         </div>
@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Initialize photo upload
-    window.medicinePhotoUpload = initPhotoUpload('medicine-photo-upload', {
+    window.medicinePhotoUpload = initPhotoUpload('medicine', {
         category: 'medicines',
         entityId: '{{ medicine.id }}',
         maxFiles: 5,
