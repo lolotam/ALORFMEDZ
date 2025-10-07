@@ -47,7 +47,9 @@ services:
 networks:
   alorfmedz-network:
     driver: bridge
-  
+    driver_opts:
+      com.docker.network.driver.mtu: 1400
+
   # External networks from other applications
   hospital_hospital_network:
     external: true

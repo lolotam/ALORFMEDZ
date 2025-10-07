@@ -14,9 +14,11 @@ python app.py
 ### Testing
 ```bash
 # Run specific test files
-python test_comprehensive_playwright.py
-python test_all_purchases_edit.py
-python test_complete_workflow.py
+python test_delete_functionality.py
+python test_store_department_relationship.py
+
+# Note: Playwright tests may be available depending on test setup
+# Ensure Playwright is installed: pip install playwright && playwright install
 ```
 
 ### Docker Deployment
@@ -27,48 +29,76 @@ docker run -p 5045:5045 alorfmdz
 # Application runs on port 5045 in Docker
 ```
 
-### Database Utilities
+### Running Individual Tests
 ```bash
-# Database cleanup and maintenance scripts
-python cleanup_medicines_database.py
-python cleanup_purchases_database.py
-python fix_consumption_management.py
-python fix_medicine_date_formats.py
+# Run specific test files for functionality testing
+python test_delete_functionality.py
+python test_store_department_relationship.py
 ```
+
+## Project Overview
+
+This is a **Flask-based Hospital Pharmacy Management System** for hospitals, providing complete inventory management, patient tracking, and advanced reporting capabilities. Built with Flask, Bootstrap 5, and JSON file-based database.
+
+### Key Features
+- User Authentication with role-based access (Admin/Department User)
+- Medicine, Patient, Supplier, Department Management
+- Purchase Management with automatic inventory updates
+- Consumption Tracking with stock validation
+- Inventory Transfers between departments
+- AI Chatbot assistant for system queries
+- Photo Management for patient records
+- Comprehensive Reporting and Analytics
+- Backup & Restore functionality
+- Audit Trail for compliance
 
 ## High-Level Architecture
 
-This is a **Flask-based Hospital Pharmacy Management System** using a **JSON file database** structure. The architecture follows these key patterns:
+The architecture follows these key patterns:
 
 ### Blueprint-Based Module Organization
 The application uses Flask blueprints for modular separation (`blueprints/` directory):
-- Each module (auth, medicines, patients, purchases, etc.) is a separate blueprint
-- Blueprints handle routing, business logic, and template rendering
-- All blueprints are registered in `app.py` with URL prefixes
+- **Available Modules**: auth, dashboard, medicines, patients, doctors, suppliers, departments, stores, purchases, consumption, reports, settings, chatbot, transfers, photos, api
+- Each module is a separate blueprint handling routing, business logic, and template rendering
+- All blueprints are registered in `app.py` with URL prefixes (e.g., `/purchases`, `/medicines`)
+- Application factory pattern used in `create_app()` function
 
 ### JSON Database Layer
 - **Location**: `data/` directory contains all JSON database files
 - **Management**: `utils/database.py` provides centralized database operations
 - **Key Pattern**: All database operations use read-modify-write pattern with file locking considerations
 - **Transaction IDs**: Most entities use string IDs like '01', '02' for consistency
+- **Files**: users.json, medicines.json, patients.json, doctors.json, suppliers.json, departments.json, stores.json, purchases.json, consumption.json, history.json, transfers.json
+- **Critical Entities**: Main Department (ID='01') and Main Store (ID='01') are system-protected and auto-recreated if missing via `ensure_main_entities()`
 
 ### Session-Based Authentication
 - Flask-Session with filesystem storage
-- Role-based access control (admin/user)
-- Login required decorator in `utils/helpers.py`
+- Role-based access control with decorators:
+  - `@login_required` - Any authenticated user
+  - `@admin_required` - Admin role only
+  - `@department_user_required` - Department user role only
+  - `@admin_or_department_user_required` - Either role
+- All decorators in `utils/helpers.py`
 - Session data stored in `flask_session/` directory
+- Default credentials:
+  - Admin: username=`admin`, password=`@Xx123456789xX@`
+  - Department User: username=`pharmacy`, password=`pharmacy123`
 
-### Template Inheritance
+### Template Inheritance & Frontend
 - Base template: `templates/base.html` with Bootstrap 5
-- Module-specific templates in subdirectories
-- Consistent navigation and theme switching
+- Module-specific templates in `templates/<module_name>/` subdirectories
+- Consistent navigation and theme switching (dark/light mode)
+- Error pages in `templates/errors/` (404.html, 500.html, 403.html)
+- Static files in `static/` directory (CSS, JS, images)
 
 ### Key Data Relationships
-- **Users** → linked to **Departments**
-- **Medicines** → linked to **Suppliers**
-- **Purchases** → creates **Store** inventory records
-- **Consumption** → deducts from **Store** inventory
-- **Transfers** → moves inventory between departments
+- **Users** → linked to **Departments** (department_id field)
+- **Medicines** → linked to **Suppliers** (supplier_id field)
+- **Purchases** → creates **Store** inventory records (auto-updates inventory on 'delivered' status)
+- **Consumption** → deducts from **Store** inventory (validates stock before dispensing)
+- **Transfers** → moves inventory between departments (with approval workflow)
+- **Stores** → belongs to **Departments** (1:1 relationship, cascading deletes)
+- **Departments** → creates default user when department is created
 
 ## Byterover MCP Integration
 
@@ -87,6 +117,15 @@ When Byterover MCP tools are available, follow these strict workflows:
 4. Update progress with `byterover-update-plan-progress`
 5. Store new knowledge with `byterover-store-knowledge`
 
+### Production Deployment
+- Use `wsgi.py` as entry point for WSGI servers (Gunicorn recommended)
+- Nginx recommended as reverse proxy
+- Set `FLASK_ENV=production` environment variable
+- Generate strong `SECRET_KEY` and store in environment variables
+- Enable HTTPS/SSL certificates
+- Configure firewall rules
+- Set up regular automated backups
+
 ## Important Development Notes
 
 ### File Editing Best Practices
@@ -95,20 +134,47 @@ When Byterover MCP tools are available, follow these strict workflows:
 - Check existing patterns in neighboring files before implementing
 
 ### Security Considerations
-- Passwords stored in plain text (needs hashing in production)
+- Passwords currently in plain text (use `generate_password_hash` from werkzeug.security for production)
 - Add CSRF protection for production deployment
-- Implement proper session security
+- Implement proper session security and HTTPS
+- SECRET_KEY in app.py should be moved to environment variables
+- File upload security: Images validated via Pillow, uploads stored in `uploads/` directory
 
 ### Testing Approach
-- Use Playwright for comprehensive UI testing
-- Test files follow `test_*.py` naming convention
-- Focus on workflow testing (purchase, consumption, transfers)
+- Test files follow `test_*.py` naming convention at project root
+- Available tests focus on:
+  - Delete functionality and data integrity
+  - Store-department relationship and cascading
+- Playwright tests may require separate setup: `pip install playwright && playwright install`
 
 ### Common Patterns
-- ID generation: Sequential string IDs ('01', '02', etc.)
-- Date handling: ISO format strings with `datetime.now().isoformat()`
-- Error handling: Flash messages for user feedback
-- Validation: Frontend + backend validation patterns
+- **ID generation**: Sequential string IDs ('01', '02', '03', etc.) - zero-padded 2-digit strings
+- **Date handling**: ISO format strings with `datetime.now().isoformat()`
+- **Error handling**: Flask flash messages for user feedback (success/error/warning/info categories)
+- **Validation**: Frontend (HTML5 + JavaScript) + backend validation patterns
+- **Blueprints**: Each module exports `<module_name>_bp` blueprint (e.g., `purchases_bp`, `medicines_bp`)
+- **Templates**: Module-specific templates in `templates/<module_name>/` subdirectories
+- **Database operations**: Use helper functions from `utils/database.py` (e.g., `get_purchases()`, `save_purchase()`, `update_purchase()`, `delete_purchase()`)
+- **Activity logging**: Use `log_activity(user_id, action, details)` for audit trail
+
+### Directory Structure
+```
+ALORFMEDZ/
+├── app.py                  # Main application entry point (create_app factory)
+├── wsgi.py                 # WSGI entry point for production
+├── config.py               # Configuration settings
+├── requirements.txt        # Python dependencies
+├── Dockerfile              # Docker configuration
+├── blueprints/             # Flask blueprints (modules)
+├── templates/              # Jinja2 HTML templates
+├── static/                 # CSS, JS, images, uploads
+├── utils/                  # Utility functions and helpers
+├── data/                   # JSON database files (created on init)
+├── backups/                # System backups (created on use)
+├── uploads/                # User uploaded files (created on use)
+├── flask_session/          # Session storage (created on init)
+└── scripts/                # Sample data generators
+```
 
 [byterover-mcp]
 

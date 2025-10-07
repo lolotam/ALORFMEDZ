@@ -9,6 +9,9 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+# Create non-root user FIRST
+RUN adduser --disabled-password --gecos '' appuser
+
 # Copy requirements first for better caching
 COPY requirements.txt .
 
@@ -17,19 +20,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .
-RUN chown -R appuser:appuser /app/data/*.json 2>/dev/null || true
 
-# Create non-root user
-RUN adduser --disabled-password --gecos '' appuser && \
-    chown -R appuser:appuser /app
-
-# Create necessary directories
+# Create necessary directories and fix ownership
 RUN mkdir -p /app/data /app/logs /app/backups && \
-    chown -R appuser:appuser /app/data /app/logs /app/backups
+    chown -R appuser:appuser /app
 
 USER appuser
 
-# Expose port 5045 to avoid conflicts
+# Expose port 5045
 EXPOSE 5045
 
 # Health check
