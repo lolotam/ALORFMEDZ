@@ -54,7 +54,6 @@ def add():
             purchase_data['received_by'] = request.form.get('received_by')
 
             # Update inventory for delivered purchases
-            from utils.database import get_purchases, save_purchase, update_purchase, delete_purchase, log_activity
             update_main_store_inventory(medicines_data, 'add')
 
         purchase_id = save_purchase(purchase_data)
@@ -117,8 +116,6 @@ def edit(purchase_id):
 
         # Handle stock updates based on status changes
         if current_status != new_status:
-            from utils.database import get_purchases, save_purchase, update_purchase, delete_purchase, log_activity
-
             # If changing FROM delivered TO complete/pending: subtract stock
             if current_status == 'delivered' and new_status in ['complete', 'pending']:
                 update_main_store_inventory(medicines_data, 'subtract')

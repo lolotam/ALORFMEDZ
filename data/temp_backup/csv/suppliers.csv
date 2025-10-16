@@ -1,0 +1,6 @@
+id,name,contact_person,phone,email,address,city,created_at
+01,MediCorp Pharmaceuticals,Contact Person 1,+1-555-449-4951,contact1@medicorppharmaceuticals.com,"9637 Medical Plaza, Suite 116",Phoenix,2024-12-04T07:30:30.395110
+02,HealthSupply Solutions,Contact Person 2,+1-555-870-5978,contact2@healthsupplysolutions.com,"4163 Medical Plaza, Suite 733",New York,2025-07-18T07:30:30.395178
+03,Global Pharma Trading,Contact Person 3,+1-555-375-7306,contact3@globalpharmatrading.com,"797 Medical Plaza, Suite 650",Los Angeles,2025-08-03T07:30:30.395190
+04,Medical Distributors Ltd,Contact Person 4,+1-555-291-8984,contact4@medicaldistributorsltd.com,"7381 Medical Plaza, Suite 505",New York,2025-06-27T07:30:30.395198
+05,BioMed Supply Chain,Contact Person 5,+1-555-920-4317,contact5@biomedsupplychain.com,"3706 Medical Plaza, Suite 384",Chicago,2024-12-25T07:30:30.395223

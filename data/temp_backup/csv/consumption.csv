@@ -1,0 +1,6 @@
+Consumption ID,Patient ID,Date,Medicine ID,Quantity,Prescribed By,Notes,Created At
+01,01,2025-10-07,01,9,Dr. Smith,Prescription for John Smith,2025-10-06T07:30:30.395459
+02,02,2025-10-05,02,2,Dr. Johnson,Prescription for Jane Johnson,2025-10-02T07:30:30.395468
+03,03,2025-09-24,03,10,Dr. Johnson,Prescription for Michael Williams,2025-10-05T07:30:30.395476
+04,04,2025-10-15,04,5,Dr. Johnson,Prescription for Sarah Brown,2025-10-15T07:30:30.395483
+05,05,2025-09-25,05,8,Dr. Johnson,Prescription for David Jones,2025-09-25T07:30:30.395490

@@ -81,7 +81,8 @@
                 </thead>
                 <tbody>
                     {% for consumption_record in consumption %}
-                    <tr data-patient-id="{{ consumption_record.patient_id }}" 
+                    <tr data-id="{{ consumption_record.id }}"
+                        data-patient-id="{{ consumption_record.patient_id }}"
                         data-date="{{ consumption_record.date }}"
                         data-department-id="{{ consumption_record.department_id }}">
                         <td><strong>{{ consumption_record.id }}</strong></td>

@@ -63,7 +63,7 @@
             <table class="table table-hover" id="medicinesTable">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>#</th>
                         <th>Medicine Name</th>
                         <th>Supplier</th>
                         <th>Form/Dosage</th>
@@ -79,8 +79,8 @@
                 </thead>
                 <tbody>
                     {% for medicine in medicines %}
-                    <tr data-supplier-id="{{ medicine.supplier_id }}">
-                        <td>{{ medicine.id }}</td>
+                    <tr data-id="{{ medicine.id }}" data-supplier-id="{{ medicine.supplier_id }}">
+                        <td>{{ loop.index }}</td>
                         <td><strong>{{ medicine.name }}</strong></td>
                         <td>
                             {% set supplier = suppliers|selectattr('id', 'equalto', medicine.supplier_id)|first %}

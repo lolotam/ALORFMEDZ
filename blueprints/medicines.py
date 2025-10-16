@@ -350,17 +350,24 @@ def bulk_delete():
                     failed_items.append(f"Medicine ID {medicine_id} has stock in stores")
                     continue
 
-                delete_medicine(medicine_id)
+                # Skip renumbering during bulk delete (will renumber once at the end)
+                delete_medicine(medicine_id, skip_renumber=True)
                 deleted_count += 1
 
             except Exception as e:
                 failed_items.append(f"Medicine ID {medicine_id}: {str(e)}")
 
+        # Renumber once after all deletions are complete
+        if deleted_count > 0:
+            from utils.database import renumber_ids, cascade_update_medicine_references
+            id_mapping = renumber_ids('medicines', protect_ids=[])
+            cascade_update_medicine_references(id_mapping)
+
         # Log the bulk delete activity
         log_activity(
-            user_id=session.get('user_id'),
             action='bulk_delete',
-            details=f'Bulk deleted {deleted_count} medicines'
+            entity_type='medicines',
+            details={'message': f'Bulk deleted {deleted_count} medicines', 'count': deleted_count}
         )
 
         # Prepare response message

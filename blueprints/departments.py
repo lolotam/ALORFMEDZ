@@ -201,11 +201,18 @@ def bulk_delete():
                     failed_items.append(f"Department ID {department_id} has consumption records")
                     continue
 
-                delete_department(department_id)
+                # Skip renumbering during bulk delete (will renumber once at the end)
+                delete_department(department_id, skip_renumber=True)
                 deleted_count += 1
 
             except Exception as e:
                 failed_items.append(f"Department ID {department_id}: {str(e)}")
+
+        # Renumber once after all deletions are complete
+        if deleted_count > 0:
+            from utils.database import renumber_ids, cascade_update_department_references
+            id_mapping = renumber_ids('departments', protect_ids=['01'])
+            cascade_update_department_references(id_mapping)
 
         # Log the bulk delete activity
         log_activity(

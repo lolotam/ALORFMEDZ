@@ -1,0 +1,6 @@
+id,name,age,gender,phone,address,medical_history,allergies,created_at
+01,John Smith,47,Female,+1-555-446-5515,9194 Oak Street,Hypertension,None,2025-06-01T07:30:30.395365
+02,Jane Johnson,50,Female,+1-555-237-6885,6874 Pine Street,Diabetes,Penicillin,2025-07-20T07:30:30.395374
+03,Michael Williams,58,Female,+1-555-585-5875,9753 Main Street,Diabetes,None,2025-08-19T07:30:30.395382
+04,Sarah Brown,34,Male,+1-555-748-2760,2441 Pine Street,Heart Disease,Aspirin,2025-05-07T07:30:30.395390
+05,David Jones,70,Female,+1-555-748-8986,1484 Pine Street,Asthma,Penicillin,2025-10-04T07:30:30.395397

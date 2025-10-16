@@ -69,7 +69,9 @@
                                 <select class="form-select" id="department_id" name="department_id">
                                     <option value="">Select Department</option>
                                     {% for department in departments %}
-                                    <option value="{{ department.id }}" {% if patient.department_id == department.id %}selected{% endif %}>{{ department.name }}</option>
+                                        {% if department.id != '01' %}
+                                        <option value="{{ department.id }}" {% if patient.department_id == department.id %}selected{% endif %}>{{ department.name }}</option>
+                                        {% endif %}
                                     {% endfor %}
                                 </select>
                                 <div class="form-text">Optional - Associate patient with a specific department</div>

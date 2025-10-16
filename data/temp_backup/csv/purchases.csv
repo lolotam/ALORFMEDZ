@@ -1,0 +1,6 @@
+Purchase ID,Supplier ID,Invoice Number,Purchase Date,Medicine ID,Quantity,Unit Price,Total Price,Status,Notes,Created At
+01,01,INV-9405,,01,492,,,complete,Purchase from MediCorp Pharmaceuticals,2025-08-19T07:30:30.395413
+02,02,INV-2669,,02,213,,,complete,Purchase from HealthSupply Solutions,2025-09-13T07:30:30.395425
+03,03,INV-9807,,03,449,,,complete,Purchase from Global Pharma Trading,2025-10-13T07:30:30.395434
+04,04,INV-4846,,04,429,,,complete,Purchase from Medical Distributors Ltd,2025-08-17T07:30:30.395442
+05,05,INV-1531,,05,214,,,complete,Purchase from BioMed Supply Chain,2025-09-20T07:30:30.395450

@@ -169,7 +169,7 @@ def delete(patient_id):
 @login_required
 @admin_required
 def bulk_delete():
-    """Bulk delete patients"""
+    """Bulk delete patients with cascading deletion of consumption records"""
     try:
         data = request.get_json()
         ids = data.get('ids', [])
@@ -177,46 +177,59 @@ def bulk_delete():
         if not ids:
             return jsonify({'success': False, 'message': 'No items selected for deletion'}), 400
 
-        # Check if any patients have consumption records
-        from utils.database import get_consumption
-        consumption_records = get_consumption()
-
-        # Delete each patient
+        # Delete each patient with cascading deletion enabled
         deleted_count = 0
         failed_items = []
+        deleted_consumption_count = 0
+
+        # First, count how many consumption records will be deleted
+        from utils.database import get_consumption
+        consumption_records = get_consumption()
+        for patient_id in ids:
+            deleted_consumption_count += sum(
+                1 for record in consumption_records
+                if record.get('patient_id') == patient_id
+            )
 
         for patient_id in ids:
             try:
-                # Check if patient has consumption records
-                has_consumption = any(
-                    record.get('patient_id') == patient_id
-                    for record in consumption_records
-                )
-
-                if has_consumption:
-                    failed_items.append(f"Patient ID {patient_id} has consumption records")
-                    continue
-
-                delete_patient(patient_id)
+                # Delete patient with cascading deletion (will delete consumption records automatically)
+                # Skip renumbering during bulk delete (will renumber once at the end)
+                delete_patient(patient_id, skip_renumber=True, cascade_delete=True)
                 deleted_count += 1
 
             except Exception as e:
                 failed_items.append(f"Patient ID {patient_id}: {str(e)}")
 
+        # Renumber once after all deletions are complete
+        if deleted_count > 0:
+            from utils.database import renumber_ids, cascade_update_patient_references
+            id_mapping = renumber_ids('patients', protect_ids=[])
+            cascade_update_patient_references(id_mapping)
+
         # Log the bulk delete activity
         log_activity(
             action='bulk_delete',
-            entity_type='patient',
-            entity_id=session.get('user_id'),
-            details={'message': f'Bulk deleted {deleted_count} patients'}
+            entity_type='patients',
+            details={
+                'message': f'Bulk deleted {deleted_count} patients and {deleted_consumption_count} consumption records',
+                'patients_count': deleted_count,
+                'consumption_count': deleted_consumption_count
+            }
         )
 
         # Prepare response message
         if deleted_count == len(ids):
-            message = f'Successfully deleted {deleted_count} patients'
+            if deleted_consumption_count > 0:
+                message = f'Successfully deleted {deleted_count} patients and {deleted_consumption_count} associated consumption records'
+            else:
+                message = f'Successfully deleted {deleted_count} patients'
             return jsonify({'success': True, 'message': message}), 200
         elif deleted_count > 0:
-            message = f'Deleted {deleted_count} out of {len(ids)} patients. Failed: {", ".join(failed_items)}'
+            message = f'Deleted {deleted_count} out of {len(ids)} patients'
+            if deleted_consumption_count > 0:
+                message += f' and {deleted_consumption_count} associated consumption records'
+            message += f'. Failed: {", ".join(failed_items)}'
             return jsonify({'success': True, 'message': message, 'warnings': failed_items}), 200
         else:
             message = f'Failed to delete any patients. Errors: {", ".join(failed_items)}'

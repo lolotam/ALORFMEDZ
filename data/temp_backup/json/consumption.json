@@ -1,0 +1,72 @@
+[
+  {
+    "id": "01",
+    "patient_id": "01",
+    "date": "2025-10-07",
+    "medicines": [
+      {
+        "medicine_id": "01",
+        "quantity": 9
+      }
+    ],
+    "prescribed_by": "Dr. Smith",
+    "notes": "Prescription for John Smith",
+    "created_at": "2025-10-06T07:30:30.395459"
+  },
+  {
+    "id": "02",
+    "patient_id": "02",
+    "date": "2025-10-05",
+    "medicines": [
+      {
+        "medicine_id": "02",
+        "quantity": 2
+      }
+    ],
+    "prescribed_by": "Dr. Johnson",
+    "notes": "Prescription for Jane Johnson",
+    "created_at": "2025-10-02T07:30:30.395468"
+  },
+  {
+    "id": "03",
+    "patient_id": "03",
+    "date": "2025-09-24",
+    "medicines": [
+      {
+        "medicine_id": "03",
+        "quantity": 10
+      }
+    ],
+    "prescribed_by": "Dr. Johnson",
+    "notes": "Prescription for Michael Williams",
+    "created_at": "2025-10-05T07:30:30.395476"
+  },
+  {
+    "id": "04",
+    "patient_id": "04",
+    "date": "2025-10-15",
+    "medicines": [
+      {
+        "medicine_id": "04",
+        "quantity": 5
+      }
+    ],
+    "prescribed_by": "Dr. Johnson",
+    "notes": "Prescription for Sarah Brown",
+    "created_at": "2025-10-15T07:30:30.395483"
+  },
+  {
+    "id": "05",
+    "patient_id": "05",
+    "date": "2025-09-25",
+    "medicines": [
+      {
+        "medicine_id": "05",
+        "quantity": 8
+      }
+    ],
+    "prescribed_by": "Dr. Johnson",
+    "notes": "Prescription for David Jones",
+    "created_at": "2025-09-25T07:30:30.395490"
+  }
+]

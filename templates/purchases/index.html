@@ -95,7 +95,8 @@
                 <tbody>
                     {% for purchase in purchases %}
                     {% set purchase_date = purchase.date or purchase.purchase_date %}
-                    <tr data-supplier-id="{{ purchase.supplier_id }}" data-date="{{ purchase_date }}"
+                    <tr data-id="{{ purchase.id }}"
+                        data-supplier-id="{{ purchase.supplier_id }}" data-date="{{ purchase_date }}"
                         data-status="{{ purchase.status }}" data-purchaser="{{ purchase.purchaser_name }}">
                         <td><strong>{{ purchase.id }}</strong></td>
                         <td>{{ purchase_date }}</td>

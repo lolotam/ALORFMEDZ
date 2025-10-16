@@ -1,0 +1,6 @@
+id,name,department_id,specialization,qualification,phone,email,license_number,notes,created_at
+01,Dr. Sarah Johnson,01,Emergency Medicine,"MD, FACEP",+1-555-895-1324,doctor1@hospital.com,MD88272,Experienced Emergency Medicine specialist,2024-12-01T07:30:30.395252
+02,Dr. Michael Chen,02,Cardiology,"MD, FACC",+1-555-902-2632,doctor2@hospital.com,MD43853,Experienced Cardiology specialist,2024-11-02T07:30:30.395260
+03,Dr. Emma Wilson,03,Internal Medicine,"MD, FACP",+1-555-292-5592,doctor3@hospital.com,MD17097,Experienced Internal Medicine specialist,2024-01-15T07:30:30.395268
+04,Dr. David Rodriguez,04,Oncology,"MD, PhD",+1-555-340-5218,doctor4@hospital.com,MD86142,Experienced Oncology specialist,2023-05-12T07:30:30.395274
+05,Dr. Lisa Anderson,05,Critical Care,"MD, FCCM",+1-555-147-1827,doctor5@hospital.com,MD26368,Experienced Critical Care specialist,2023-02-14T07:30:30.395281

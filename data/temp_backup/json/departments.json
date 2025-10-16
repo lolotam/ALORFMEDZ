@@ -1,0 +1,47 @@
+[
+  {
+    "id": "01",
+    "name": "Main Pharmacy",
+    "description": "Central pharmacy department",
+    "responsible_person": "Chief Pharmacist",
+    "telephone": "+1-555-PHARM",
+    "notes": "Main distribution center",
+    "created_at": "2024-08-05T07:30:30.395230"
+  },
+  {
+    "id": "02",
+    "name": "Emergency Department",
+    "description": "Emergency medicine and trauma care",
+    "responsible_person": "ER Director",
+    "telephone": "+1-555-EMERG",
+    "notes": "Critical care medications",
+    "created_at": "2024-09-25T07:30:30.395233"
+  },
+  {
+    "id": "03",
+    "name": "Intensive Care Unit",
+    "description": "Critical care and life support",
+    "responsible_person": "ICU Manager",
+    "telephone": "+1-555-ICU01",
+    "notes": "Life-saving medications",
+    "created_at": "2024-10-13T07:30:30.395236"
+  },
+  {
+    "id": "04",
+    "name": "Cardiology",
+    "description": "Heart and cardiovascular care",
+    "responsible_person": "Cardiology Head",
+    "telephone": "+1-555-HEART",
+    "notes": "Cardiac medications",
+    "created_at": "2024-11-03T07:30:30.395238"
+  },
+  {
+    "id": "05",
+    "name": "Oncology",
+    "description": "Cancer treatment and chemotherapy",
+    "responsible_person": "Oncology Director",
+    "telephone": "+1-555-ONCOL",
+    "notes": "Chemotherapy drugs",
+    "created_at": "2024-06-04T07:30:30.395240"
+  }
+]

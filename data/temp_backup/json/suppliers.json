@@ -1,0 +1,52 @@
+[
+  {
+    "id": "01",
+    "name": "MediCorp Pharmaceuticals",
+    "contact_person": "Contact Person 1",
+    "phone": "+1-555-449-4951",
+    "email": "contact1@medicorppharmaceuticals.com",
+    "address": "9637 Medical Plaza, Suite 116",
+    "city": "Phoenix",
+    "created_at": "2024-12-04T07:30:30.395110"
+  },
+  {
+    "id": "02",
+    "name": "HealthSupply Solutions",
+    "contact_person": "Contact Person 2",
+    "phone": "+1-555-870-5978",
+    "email": "contact2@healthsupplysolutions.com",
+    "address": "4163 Medical Plaza, Suite 733",
+    "city": "New York",
+    "created_at": "2025-07-18T07:30:30.395178"
+  },
+  {
+    "id": "03",
+    "name": "Global Pharma Trading",
+    "contact_person": "Contact Person 3",
+    "phone": "+1-555-375-7306",
+    "email": "contact3@globalpharmatrading.com",
+    "address": "797 Medical Plaza, Suite 650",
+    "city": "Los Angeles",
+    "created_at": "2025-08-03T07:30:30.395190"
+  },
+  {
+    "id": "04",
+    "name": "Medical Distributors Ltd",
+    "contact_person": "Contact Person 4",
+    "phone": "+1-555-291-8984",
+    "email": "contact4@medicaldistributorsltd.com",
+    "address": "7381 Medical Plaza, Suite 505",
+    "city": "New York",
+    "created_at": "2025-06-27T07:30:30.395198"
+  },
+  {
+    "id": "05",
+    "name": "BioMed Supply Chain",
+    "contact_person": "Contact Person 5",
+    "phone": "+1-555-920-4317",
+    "email": "contact5@biomedsupplychain.com",
+    "address": "3706 Medical Plaza, Suite 384",
+    "city": "Chicago",
+    "created_at": "2024-12-25T07:30:30.395223"
+  }
+]

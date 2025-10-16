@@ -6,6 +6,9 @@
 class PhotoGallery {
     constructor(containerId, options = {}) {
         this.container = document.getElementById(containerId);
+        this.containerId = containerId;
+        // Sanitize container ID for use in JavaScript identifiers (replace hyphens with underscores)
+        this.safeContainerId = containerId.replace(/-/g, '_');
         this.options = {
             category: options.category || 'medicines',
             entityId: options.entityId || null,
@@ -26,6 +29,9 @@ class PhotoGallery {
             return;
         }
 
+        // Store global reference for onclick handlers (using sanitized ID)
+        window[`photoGallery_${this.safeContainerId}`] = this;
+
         this.createGalleryArea();
         this.loadPhotos();
     }
@@ -33,14 +39,14 @@ class PhotoGallery {
     createGalleryArea() {
         this.container.innerHTML = `
             <div class="photo-gallery">
-                <div class="gallery-grid row" id="${this.container.id}_grid">
+                <div class="gallery-grid row" id="${this.containerId}_grid">
                     <!-- Photos will be loaded here -->
                 </div>
-                <div class="gallery-empty text-center text-muted p-4 d-none" id="${this.container.id}_empty">
+                <div class="gallery-empty text-center text-muted p-4 d-none" id="${this.containerId}_empty">
                     <i class="bi bi-images fs-1 opacity-50"></i>
                     <p class="mt-2">No photos uploaded yet</p>
                 </div>
-                <div class="gallery-loading text-center p-4" id="${this.container.id}_loading">
+                <div class="gallery-loading text-center p-4" id="${this.containerId}_loading">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
@@ -49,9 +55,9 @@ class PhotoGallery {
             </div>
         `;
 
-        this.gridContainer = document.getElementById(`${this.container.id}_grid`);
-        this.emptyContainer = document.getElementById(`${this.container.id}_empty`);
-        this.loadingContainer = document.getElementById(`${this.container.id}_loading`);
+        this.gridContainer = document.getElementById(`${this.containerId}_grid`);
+        this.emptyContainer = document.getElementById(`${this.containerId}_empty`);
+        this.loadingContainer = document.getElementById(`${this.containerId}_loading`);
     }
 
     async loadPhotos() {
@@ -115,14 +121,14 @@ class PhotoGallery {
                 <img src="${imageUrl}"
                      class="img-fluid rounded shadow-sm photo-thumbnail"
                      style="width: 100%; height: 150px; object-fit: cover; cursor: pointer;"
-                     onclick="photoGallery_${this.container.id}.openLightbox(${index})"
+                     onclick="photoGallery_${this.safeContainerId}.openLightbox(${index})"
                      alt="Photo ${index + 1}">
 
                 ${this.options.allowDelete ? `
                 <button type="button"
                         class="btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle"
-                        style="width: 25px; height: 25px; margin: 5px;"
-                        onclick="photoGallery_${this.container.id}.deletePhoto('${photo.filename}')"
+                        style="width: 25px; height: 25px; margin: 5px; z-index: 10;"
+                        onclick="photoGallery_${this.safeContainerId}.deletePhoto('${photo.filename}')"
                         title="Delete photo">
                     <i class="bi bi-trash" style="font-size: 12px;"></i>
                 </button>
@@ -146,7 +152,7 @@ class PhotoGallery {
         // Create lightbox modal
         const lightboxModal = document.createElement('div');
         lightboxModal.className = 'modal fade';
-        lightboxModal.id = `lightbox_${this.container.id}_${index}`;
+        lightboxModal.id = `lightbox_${this.containerId}_${index}`;
         lightboxModal.innerHTML = `
             <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content">
@@ -170,7 +176,7 @@ class PhotoGallery {
                         </a>
                         ${this.options.allowDelete ? `
                         <button type="button" class="btn btn-danger"
-                                onclick="photoGallery_${this.container.id}.deletePhoto('${photo.filename}'); bootstrap.Modal.getInstance(this.closest('.modal')).hide();">
+                                onclick="photoGallery_${this.safeContainerId}.deletePhoto('${photo.filename}'); bootstrap.Modal.getInstance(this.closest('.modal')).hide();">
                             <i class="bi bi-trash"></i> Delete
                         </button>
                         ` : ''}
@@ -189,9 +195,6 @@ class PhotoGallery {
         lightboxModal.addEventListener('hidden.bs.modal', () => {
             document.body.removeChild(lightboxModal);
         });
-
-        // Store reference for button onclick
-        window[`photoGallery_${this.container.id}`] = this;
     }
 
     async deletePhoto(filename) {

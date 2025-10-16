@@ -893,24 +893,33 @@ def create_manual_backup():
         # Ensure backups directory exists
         os.makedirs('backups', exist_ok=True)
 
-        # Create ZIP backup with CSV files
+        # Create ZIP backup with both JSON and CSV files
         import zipfile
         with zipfile.ZipFile(backup_path, 'w') as backup_zip:
             # Add metadata
             metadata = {
-                'created_at': datetime.now().isoformat(),
+                'backup_date': datetime.now().isoformat(),
                 'type': 'manual',
                 'version': '1.0',
-                'description': 'Manual backup created by user'
+                'description': 'Manual backup created by user',
+                'user_id': session.get('user_id'),
+                'username': session.get('username')
             }
             backup_zip.writestr('backup_metadata.json', json.dumps(metadata, indent=2))
 
-            # Get all data and create CSV files
+            # Get all data and add both JSON and CSV files
+            from utils.database import DB_FILES
             data_types = ['medicines', 'patients', 'suppliers', 'departments', 'doctors',
                          'stores', 'purchases', 'consumption', 'transfers', 'users', 'history']
 
             for data_type in data_types:
                 try:
+                    # Add JSON file (required for restore)
+                    json_file_path = DB_FILES.get(data_type)
+                    if json_file_path and os.path.exists(json_file_path):
+                        backup_zip.write(json_file_path, f'{data_type}.json')
+
+                    # Also add CSV file for easy viewing
                     data = load_data(data_type)
                     csv_filename = f'{data_type}.csv'
                     csv_path = f'{data_type}_temp.csv'
@@ -940,10 +949,9 @@ def create_manual_backup():
                         export_history_to_csv(data, csv_path)
 
                     # Add CSV to ZIP
-                    backup_zip.write(csv_path, csv_filename)
-
-                    # Clean up temp file
                     if os.path.exists(csv_path):
+                        backup_zip.write(csv_path, csv_filename)
+                        # Clean up temp file
                         os.remove(csv_path)
 
                 except Exception as e:
@@ -1206,8 +1214,9 @@ def export_departments_to_csv(departments, csv_path):
 def export_doctors_to_csv(doctors, csv_path):
     """Export doctors to CSV"""
     import csv
-    fieldnames = ['id', 'name', 'department_id', 'specialization', 'qualification',
-                 'phone', 'email', 'license_number', 'notes', 'created_at']
+    fieldnames = ['id', 'dr_name', 'gender', 'nationality', 'department_id', 'specialist',
+                 'position', 'type', 'mobile_no', 'email', 'license_number', 'note',
+                 'created_at', 'updated_at']
 
     with open(csv_path, 'w', newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)

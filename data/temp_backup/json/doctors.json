@@ -1,0 +1,62 @@
+[
+  {
+    "id": "01",
+    "name": "Dr. Sarah Johnson",
+    "department_id": "01",
+    "specialization": "Emergency Medicine",
+    "qualification": "MD, FACEP",
+    "phone": "+1-555-895-1324",
+    "email": "doctor1@hospital.com",
+    "license_number": "MD88272",
+    "notes": "Experienced Emergency Medicine specialist",
+    "created_at": "2024-12-01T07:30:30.395252"
+  },
+  {
+    "id": "02",
+    "name": "Dr. Michael Chen",
+    "department_id": "02",
+    "specialization": "Cardiology",
+    "qualification": "MD, FACC",
+    "phone": "+1-555-902-2632",
+    "email": "doctor2@hospital.com",
+    "license_number": "MD43853",
+    "notes": "Experienced Cardiology specialist",
+    "created_at": "2024-11-02T07:30:30.395260"
+  },
+  {
+    "id": "03",
+    "name": "Dr. Emma Wilson",
+    "department_id": "03",
+    "specialization": "Internal Medicine",
+    "qualification": "MD, FACP",
+    "phone": "+1-555-292-5592",
+    "email": "doctor3@hospital.com",
+    "license_number": "MD17097",
+    "notes": "Experienced Internal Medicine specialist",
+    "created_at": "2024-01-15T07:30:30.395268"
+  },
+  {
+    "id": "04",
+    "name": "Dr. David Rodriguez",
+    "department_id": "04",
+    "specialization": "Oncology",
+    "qualification": "MD, PhD",
+    "phone": "+1-555-340-5218",
+    "email": "doctor4@hospital.com",
+    "license_number": "MD86142",
+    "notes": "Experienced Oncology specialist",
+    "created_at": "2023-05-12T07:30:30.395274"
+  },
+  {
+    "id": "05",
+    "name": "Dr. Lisa Anderson",
+    "department_id": "05",
+    "specialization": "Critical Care",
+    "qualification": "MD, FCCM",
+    "phone": "+1-555-147-1827",
+    "email": "doctor5@hospital.com",
+    "license_number": "MD26368",
+    "notes": "Experienced Critical Care specialist",
+    "created_at": "2023-02-14T07:30:30.395281"
+  }
+]

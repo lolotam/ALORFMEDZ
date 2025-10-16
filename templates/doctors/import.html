@@ -23,7 +23,7 @@
                     <li>File must be in CSV format (.csv extension)</li>
                     <li>First row should contain headers (case-sensitive)</li>
                     <li><strong>Required columns:</strong> Doctor Name, Gender</li>
-                    <li><strong>Optional columns:</strong> Nationality, Specialist, Position, Type, Mobile No, Email, Note</li>
+                    <li><strong>Optional columns:</strong> Nationality, Department ID, Specialist, Position, Type, Mobile No, Email, Note</li>
                 </ul>
 
                 <h6>Column Details:</h6>
@@ -55,6 +55,12 @@
                                 <td><span class="badge bg-secondary">Optional</span></td>
                                 <td>Any text</td>
                                 <td>American</td>
+                            </tr>
+                            <tr>
+                                <td>Department ID</td>
+                                <td><span class="badge bg-secondary">Optional</span></td>
+                                <td>Department ID (01, 02, 03, etc.) - exclude Main Pharmacy (01)</td>
+                                <td>02</td>
                             </tr>
                             <tr>
                                 <td>Specialist</td>
@@ -136,9 +142,9 @@
             <div class="card-body">
                 <p>Download this sample CSV template to get started:</p>
                 <div class="bg-light p-3 rounded">
-                    <pre>Doctor Name,Gender,Nationality,Specialist,Position,Type,Mobile No,Email,Note
-Dr. John Smith,male,American,surgery,consultant,employee,+1234567890,john@hospital.com,Senior surgeon
-Dr. Sarah Johnson,female,British,pediatrician,specialist,employee,+44123456789,sarah@hospital.com,Pediatric specialist</pre>
+                    <pre>Doctor Name,Gender,Nationality,Department ID,Specialist,Position,Type,Mobile No,Email,Note
+Dr. John Smith,male,American,02,surgery,consultant,employee,+1234567890,john@hospital.com,Senior surgeon
+Dr. Sarah Johnson,female,British,03,pediatrician,specialist,employee,+44123456789,sarah@hospital.com,Pediatric specialist</pre>
                 </div>
                 <button class="btn btn-outline-primary btn-sm mt-2" onclick="downloadTemplate()">
                     <i class="bi bi-download"></i> Download Template
@@ -152,9 +158,9 @@ Dr. Sarah Johnson,female,British,pediatrician,specialist,employee,+44123456789,s
 {% block extra_js %}
 <script>
 function downloadTemplate() {
-    const csvContent = `Doctor Name,Gender,Nationality,Specialist,Position,Type,Mobile No,Email,Note
-Dr. John Smith,male,American,surgery,consultant,employee,+1234567890,john@hospital.com,Senior surgeon
-Dr. Sarah Johnson,female,British,pediatrician,specialist,employee,+44123456789,sarah@hospital.com,Pediatric specialist`;
+    const csvContent = `Doctor Name,Gender,Nationality,Department ID,Specialist,Position,Type,Mobile No,Email,Note
+Dr. John Smith,male,American,02,surgery,consultant,employee,+1234567890,john@hospital.com,Senior surgeon
+Dr. Sarah Johnson,female,British,03,pediatrician,specialist,employee,+44123456789,sarah@hospital.com,Pediatric specialist`;
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);

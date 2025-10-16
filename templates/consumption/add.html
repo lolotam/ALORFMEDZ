@@ -36,11 +36,13 @@
                                     <option value="">Select Department</option>
                                     {% if session.role == 'admin' %}
                                         {% for department in departments %}
-                                        <option value="{{ department.id }}" {% if department.id == session.department_id %}selected{% endif %}>{{ department.name }}</option>
+                                            {% if department.id != '01' %}
+                                            <option value="{{ department.id }}" {% if department.id == session.department_id %}selected{% endif %}>{{ department.name }}</option>
+                                            {% endif %}
                                         {% endfor %}
                                     {% else %}
                                         {% for department in departments %}
-                                            {% if department.id == session.department_id %}
+                                            {% if department.id == session.department_id and department.id != '01' %}
                                             <option value="{{ department.id }}" selected>{{ department.name }}</option>
                                             {% endif %}
                                         {% endfor %}

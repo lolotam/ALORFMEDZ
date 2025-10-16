@@ -80,6 +80,21 @@
                     <div class="col-md-9">{{ doctor.nationality or '-' }}</div>
                 </div>
                 <div class="row mb-3">
+                    <div class="col-md-3"><strong>Department:</strong></div>
+                    <div class="col-md-9">
+                        {% if doctor.department_id %}
+                            {% set department = departments|selectattr('id', 'equalto', doctor.department_id)|first %}
+                            {% if department %}
+                                <span class="badge bg-primary">{{ department.name }}</span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
                     <div class="col-md-3"><strong>Specialist:</strong></div>
                     <div class="col-md-9">
                         {% if doctor.specialist %}

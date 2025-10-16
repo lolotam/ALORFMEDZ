@@ -1,0 +1,10 @@
+Store ID,Store Name,Department ID,Location,Medicine ID,Medicine Stock,Created At
+01,Main Pharmacy Store,01,"Building B, Floor 4",01,471,2024-08-05T07:30:30.395230
+01,Main Pharmacy Store,01,"Building B, Floor 4",02,205,2024-08-05T07:30:30.395230
+01,Main Pharmacy Store,01,"Building B, Floor 4",03,431,2024-08-05T07:30:30.395230
+01,Main Pharmacy Store,01,"Building B, Floor 4",04,381,2024-08-05T07:30:30.395230
+01,Main Pharmacy Store,01,"Building B, Floor 4",05,206,2024-08-05T07:30:30.395230
+02,Emergency Department Store,02,"Building B, Floor 3",01,12,2024-09-25T07:30:30.395233
+03,Intensive Care Unit Store,03,"Building C, Floor 1",02,6,2024-10-13T07:30:30.395236
+04,Cardiology Store,04,"Building B, Floor 2",03,8,2024-11-03T07:30:30.395238
+05,Oncology Store,05,"Building B, Floor 4",04,43,2024-06-04T07:30:30.395240

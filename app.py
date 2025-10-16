@@ -3,7 +3,7 @@ Hospital Pharmacy Management System
 Main Flask Application Entry Point
 """
 
-from flask import Flask, render_template, session, redirect, url_for
+from flask import Flask, render_template, session, redirect, url_for, send_from_directory
 from flask_session import Session
 import os
 from datetime import datetime
@@ -28,6 +28,7 @@ from blueprints.photos import photos_bp
 # Import utilities
 from utils.database import init_database
 from utils.helpers import login_required
+from utils.upload import ensure_upload_directory
 
 def create_app():
     """Application factory pattern"""
@@ -41,9 +42,12 @@ def create_app():
     
     # Initialize session
     Session(app)
-    
+
     # Initialize database
     init_database()
+
+    # Initialize upload directories
+    ensure_upload_directory()
     
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/auth')
@@ -68,6 +72,12 @@ def create_app():
         if 'user_id' in session:
             return redirect(url_for('dashboard.index'))
         return redirect(url_for('auth.login'))
+
+    # Favicon route
+    @app.route('/favicon/<path:filename>')
+    def favicon(filename):
+        """Serve favicon files"""
+        return send_from_directory('favicon', filename)
     
     # Error handlers
     @app.errorhandler(404)

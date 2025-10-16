@@ -1,0 +1,6 @@
+id,name,description,responsible_person,telephone,notes,created_at
+01,Main Pharmacy,Central pharmacy department,Chief Pharmacist,+1-555-PHARM,Main distribution center,2024-08-05T07:30:30.395230
+02,Emergency Department,Emergency medicine and trauma care,ER Director,+1-555-EMERG,Critical care medications,2024-09-25T07:30:30.395233
+03,Intensive Care Unit,Critical care and life support,ICU Manager,+1-555-ICU01,Life-saving medications,2024-10-13T07:30:30.395236
+04,Cardiology,Heart and cardiovascular care,Cardiology Head,+1-555-HEART,Cardiac medications,2024-11-03T07:30:30.395238
+05,Oncology,Cancer treatment and chemotherapy,Oncology Director,+1-555-ONCOL,Chemotherapy drugs,2024-06-04T07:30:30.395240

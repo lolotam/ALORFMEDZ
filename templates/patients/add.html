@@ -66,7 +66,9 @@
                                 <select class="form-select" id="department_id" name="department_id" required>
                                     <option value="">Select Department</option>
                                     {% for department in departments %}
-                                    <option value="{{ department.id }}">{{ department.name }}</option>
+                                        {% if department.id != '01' %}
+                                        <option value="{{ department.id }}">{{ department.name }}</option>
+                                        {% endif %}
                                     {% endfor %}
                                 </select>
                                 <div class="invalid-feedback">

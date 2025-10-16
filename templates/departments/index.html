@@ -45,7 +45,7 @@
             <table class="table table-hover" id="departmentsTable">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>#</th>
                         <th>Department Name</th>
                         <th>Responsible Person</th>
                         <th>Telephone</th>
@@ -56,8 +56,8 @@
                 </thead>
                 <tbody>
                     {% for department in departments %}
-                    <tr>
-                        <td>{{ department.id }}</td>
+                    <tr data-id="{{ department.id }}">
+                        <td>{{ loop.index }}</td>
                         <td><strong>{{ department.name }}</strong></td>
                         <td>{{ department.responsible_person or 'Not assigned' }}</td>
                         <td>

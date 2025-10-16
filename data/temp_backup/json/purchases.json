@@ -1,0 +1,82 @@
+[
+  {
+    "id": "01",
+    "supplier_id": "01",
+    "invoice_number": "INV-9405",
+    "date": "2025-09-14",
+    "medicines": [
+      {
+        "medicine_id": "01",
+        "quantity": 492
+      }
+    ],
+    "purchaser_name": "Purchaser 1",
+    "status": "complete",
+    "notes": "Purchase from MediCorp Pharmaceuticals",
+    "created_at": "2025-08-19T07:30:30.395413"
+  },
+  {
+    "id": "02",
+    "supplier_id": "02",
+    "invoice_number": "INV-2669",
+    "date": "2025-09-26",
+    "medicines": [
+      {
+        "medicine_id": "02",
+        "quantity": 213
+      }
+    ],
+    "purchaser_name": "Purchaser 2",
+    "status": "complete",
+    "notes": "Purchase from HealthSupply Solutions",
+    "created_at": "2025-09-13T07:30:30.395425"
+  },
+  {
+    "id": "03",
+    "supplier_id": "03",
+    "invoice_number": "INV-9807",
+    "date": "2025-09-05",
+    "medicines": [
+      {
+        "medicine_id": "03",
+        "quantity": 449
+      }
+    ],
+    "purchaser_name": "Purchaser 3",
+    "status": "complete",
+    "notes": "Purchase from Global Pharma Trading",
+    "created_at": "2025-10-13T07:30:30.395434"
+  },
+  {
+    "id": "04",
+    "supplier_id": "04",
+    "invoice_number": "INV-4846",
+    "date": "2025-09-18",
+    "medicines": [
+      {
+        "medicine_id": "04",
+        "quantity": 429
+      }
+    ],
+    "purchaser_name": "Purchaser 4",
+    "status": "complete",
+    "notes": "Purchase from Medical Distributors Ltd",
+    "created_at": "2025-08-17T07:30:30.395442"
+  },
+  {
+    "id": "05",
+    "supplier_id": "05",
+    "invoice_number": "INV-1531",
+    "date": "2025-10-06",
+    "medicines": [
+      {
+        "medicine_id": "05",
+        "quantity": 214
+      }
+    ],
+    "purchaser_name": "Purchaser 5",
+    "status": "complete",
+    "notes": "Purchase from BioMed Supply Chain",
+    "created_at": "2025-09-20T07:30:30.395450"
+  }
+]

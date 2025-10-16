@@ -1,0 +1,57 @@
+[
+  {
+    "id": "01",
+    "name": "John Smith",
+    "age": 47,
+    "gender": "Female",
+    "phone": "+1-555-446-5515",
+    "address": "9194 Oak Street",
+    "medical_history": "Hypertension",
+    "allergies": "None",
+    "created_at": "2025-06-01T07:30:30.395365"
+  },
+  {
+    "id": "02",
+    "name": "Jane Johnson",
+    "age": 50,
+    "gender": "Female",
+    "phone": "+1-555-237-6885",
+    "address": "6874 Pine Street",
+    "medical_history": "Diabetes",
+    "allergies": "Penicillin",
+    "created_at": "2025-07-20T07:30:30.395374"
+  },
+  {
+    "id": "03",
+    "name": "Michael Williams",
+    "age": 58,
+    "gender": "Female",
+    "phone": "+1-555-585-5875",
+    "address": "9753 Main Street",
+    "medical_history": "Diabetes",
+    "allergies": "None",
+    "created_at": "2025-08-19T07:30:30.395382"
+  },
+  {
+    "id": "04",
+    "name": "Sarah Brown",
+    "age": 34,
+    "gender": "Male",
+    "phone": "+1-555-748-2760",
+    "address": "2441 Pine Street",
+    "medical_history": "Heart Disease",
+    "allergies": "Aspirin",
+    "created_at": "2025-05-07T07:30:30.395390"
+  },
+  {
+    "id": "05",
+    "name": "David Jones",
+    "age": 70,
+    "gender": "Female",
+    "phone": "+1-555-748-8986",
+    "address": "1484 Pine Street",
+    "medical_history": "Asthma",
+    "allergies": "Penicillin",
+    "created_at": "2025-10-04T07:30:30.395397"
+  }
+]

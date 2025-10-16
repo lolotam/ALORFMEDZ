@@ -1,0 +1,22 @@
+[
+  {
+    "id": "01",
+    "username": "admin",
+    "password": "@Xx123456789xX@",
+    "role": "admin",
+    "name": "System Administrator",
+    "email": "admin@hospital.com",
+    "department_id": null,
+    "created_at": "2025-10-16T07:30:30.395524"
+  },
+  {
+    "id": "02",
+    "username": "pharmacy",
+    "password": "pharmacy123",
+    "role": "department_user",
+    "name": "Pharmacy User",
+    "email": "pharmacy@hospital.com",
+    "department_id": "01",
+    "created_at": "2025-10-16T07:30:30.395527"
+  }
+]

@@ -179,6 +179,219 @@ def generate_id(file_type: str) -> str:
     
     return f"{max_id + 1:02d}"
 
+def renumber_ids(file_type: str, protect_ids: List[str] = None) -> Dict[str, str]:
+    """
+    Renumber IDs sequentially after deletion to maintain 1, 2, 3, 4... sequence.
+
+    Args:
+        file_type: Type of data file (e.g., 'medicines', 'patients')
+        protect_ids: List of IDs that should not be renumbered (e.g., ['01'] for main entities)
+
+    Returns:
+        Dictionary mapping old_id -> new_id for cascade updates
+    """
+    if protect_ids is None:
+        protect_ids = []
+
+    data = load_data(file_type)
+    if not data:
+        return {}
+
+    # Create mapping of old IDs to new IDs
+    id_mapping = {}
+    new_id_counter = 1
+
+    # Sort data by existing ID to maintain some order
+    sorted_data = sorted(data, key=lambda x: int(x.get('id', '0')))
+
+    for item in sorted_data:
+        old_id = item.get('id')
+
+        # Skip protected IDs - they keep their original ID
+        if old_id in protect_ids:
+            id_mapping[old_id] = old_id
+            continue
+
+        # Assign new sequential ID
+        new_id = f"{new_id_counter:02d}"
+
+        # Skip if new_id is protected (e.g., we're at 01 but 01 is protected)
+        while new_id in protect_ids:
+            new_id_counter += 1
+            new_id = f"{new_id_counter:02d}"
+
+        id_mapping[old_id] = new_id
+        item['id'] = new_id
+        new_id_counter += 1
+
+    # Save renumbered data
+    save_data(file_type, data)
+
+    return id_mapping
+
+def cascade_update_supplier_references(id_mapping: Dict[str, str]):
+    """Update supplier_id references in medicines after supplier ID renumbering"""
+    if not id_mapping:
+        return
+
+    medicines = get_medicines()
+    updated = False
+
+    for medicine in medicines:
+        old_supplier_id = medicine.get('supplier_id')
+        if old_supplier_id and old_supplier_id in id_mapping:
+            medicine['supplier_id'] = id_mapping[old_supplier_id]
+            updated = True
+
+    if updated:
+        save_data('medicines', medicines)
+
+def cascade_update_department_references(id_mapping: Dict[str, str]):
+    """Update department_id references after department ID renumbering"""
+    if not id_mapping:
+        return
+
+    # Update users
+    users = get_users()
+    for user in users:
+        old_dept_id = user.get('department_id')
+        if old_dept_id and old_dept_id in id_mapping:
+            user['department_id'] = id_mapping[old_dept_id]
+    save_data('users', users)
+
+    # Update stores
+    stores = get_stores()
+    for store in stores:
+        old_dept_id = store.get('department_id')
+        if old_dept_id and old_dept_id in id_mapping:
+            store['department_id'] = id_mapping[old_dept_id]
+    save_data('stores', stores)
+
+    # Update patients
+    patients = get_patients()
+    for patient in patients:
+        old_dept_id = patient.get('department_id')
+        if old_dept_id and old_dept_id in id_mapping:
+            patient['department_id'] = id_mapping[old_dept_id]
+    save_data('patients', patients)
+
+    # Update consumption records
+    consumption = get_consumption()
+    for record in consumption:
+        old_dept_id = record.get('department_id')
+        if old_dept_id and old_dept_id in id_mapping:
+            record['department_id'] = id_mapping[old_dept_id]
+    save_data('consumption', consumption)
+
+def cascade_update_medicine_references(id_mapping: Dict[str, str]):
+    """Update medicine_id references after medicine ID renumbering"""
+    if not id_mapping:
+        return
+
+    # Update store inventories (keys are medicine IDs)
+    stores = get_stores()
+    for store in stores:
+        if 'inventory' in store and store['inventory']:
+            new_inventory = {}
+            for old_med_id, quantity in store['inventory'].items():
+                new_med_id = id_mapping.get(old_med_id, old_med_id)
+                new_inventory[new_med_id] = quantity
+            store['inventory'] = new_inventory
+    save_data('stores', stores)
+
+    # Update purchases
+    purchases = get_purchases()
+    for purchase in purchases:
+        if 'medicines' in purchase:
+            for medicine_item in purchase['medicines']:
+                old_med_id = medicine_item.get('medicine_id')
+                if old_med_id and old_med_id in id_mapping:
+                    medicine_item['medicine_id'] = id_mapping[old_med_id]
+    save_data('purchases', purchases)
+
+    # Update consumption
+    consumption = get_consumption()
+    for record in consumption:
+        if 'medicines' in record:
+            for medicine_item in record['medicines']:
+                old_med_id = medicine_item.get('medicine_id')
+                if old_med_id and old_med_id in id_mapping:
+                    medicine_item['medicine_id'] = id_mapping[old_med_id]
+    save_data('consumption', consumption)
+
+    # Update transfers
+    transfers = get_transfers()
+    for transfer in transfers:
+        if 'medicines' in transfer:
+            for medicine_item in transfer['medicines']:
+                old_med_id = medicine_item.get('medicine_id')
+                if old_med_id and old_med_id in id_mapping:
+                    medicine_item['medicine_id'] = id_mapping[old_med_id]
+    save_data('transfers', transfers)
+
+def cascade_update_patient_references(id_mapping: Dict[str, str]):
+    """Update patient_id references after patient ID renumbering"""
+    if not id_mapping:
+        return
+
+    consumption = get_consumption()
+    updated = False
+
+    for record in consumption:
+        old_patient_id = record.get('patient_id')
+        if old_patient_id and old_patient_id in id_mapping:
+            record['patient_id'] = id_mapping[old_patient_id]
+            updated = True
+
+    if updated:
+        save_data('consumption', consumption)
+
+def cascade_update_store_references(id_mapping: Dict[str, str]):
+    """Update store_id references after store ID renumbering"""
+    if not id_mapping:
+        return
+
+    transfers = get_transfers()
+    updated = False
+
+    for transfer in transfers:
+        old_source_id = transfer.get('source_store_id')
+        if old_source_id and old_source_id in id_mapping:
+            transfer['source_store_id'] = id_mapping[old_source_id]
+            updated = True
+
+        old_dest_id = transfer.get('destination_store_id')
+        if old_dest_id and old_dest_id in id_mapping:
+            transfer['destination_store_id'] = id_mapping[old_dest_id]
+            updated = True
+
+    if updated:
+        save_data('transfers', transfers)
+
+def cascade_update_user_references(id_mapping: Dict[str, str]):
+    """Update user_id references in history after user ID renumbering"""
+    if not id_mapping:
+        return
+
+    history = load_data('history')
+    updated = False
+
+    for entry in history:
+        old_user_id = entry.get('user_id')
+        if old_user_id and old_user_id in id_mapping:
+            entry['user_id'] = id_mapping[old_user_id]
+            updated = True
+
+        # Also update entity_id if it references a user
+        if entry.get('entity_type') == 'user':
+            old_entity_id = entry.get('entity_id')
+            if old_entity_id and old_entity_id in id_mapping:
+                entry['entity_id'] = id_mapping[old_entity_id]
+                updated = True
+
+    if updated:
+        save_data('history', history)
+
 def log_history(action: str, table: str, record_id: str, user_id: str, details: str = ''):
     """Log action to history"""
     history = load_data('history')
@@ -552,7 +765,7 @@ def update_user(user_id: str, user_data: Dict):
     })
 
 def delete_user(user_id: str):
-    """Delete user"""
+    """Delete user and renumber remaining records"""
     users = get_users()
     user_to_delete = next((u for u in users if u['id'] == user_id), None)
 
@@ -574,6 +787,10 @@ def delete_user(user_id: str):
         'username': user_to_delete.get('username'),
         'role': user_to_delete.get('role')
     })
+
+    # Renumber users and cascade update all references (protect default admin users)
+    id_mapping = renumber_ids('users', protect_ids=['01', '02'])
+    cascade_update_user_references(id_mapping)
 
 def get_user_by_id(user_id: str) -> Optional[Dict]:
     """Get user by ID"""
@@ -694,11 +911,16 @@ def migrate_medicine_fields():
         return True
     return False
 
-def delete_medicine(medicine_id: str):
-    """Delete medicine"""
+def delete_medicine(medicine_id: str, skip_renumber: bool = False):
+    """Delete medicine and optionally renumber remaining records"""
     medicines = get_medicines()
     medicines = [m for m in medicines if m['id'] != medicine_id]
     save_data('medicines', medicines)
+
+    # Renumber medicines and cascade update all references (unless skipped for bulk operations)
+    if not skip_renumber:
+        id_mapping = renumber_ids('medicines', protect_ids=[])
+        cascade_update_medicine_references(id_mapping)
 
 # Patient functions
 def get_patients() -> List[Dict]:
@@ -726,11 +948,35 @@ def update_patient(patient_id: str, patient_data: Dict):
             break
     save_data('patients', patients)
 
-def delete_patient(patient_id: str):
-    """Delete patient"""
+def delete_patient(patient_id: str, skip_renumber: bool = False, cascade_delete: bool = True):
+    """Delete patient and optionally renumber remaining records
+
+    Args:
+        patient_id: ID of the patient to delete
+        skip_renumber: If True, skip renumbering (used in bulk operations)
+        cascade_delete: If True, delete associated consumption records first (default: True)
+    """
+    # Step 1: Delete associated consumption records if cascade_delete is enabled
+    if cascade_delete:
+        consumption_records = get_consumption()
+        # Filter out consumption records for this patient
+        updated_consumption = [
+            record for record in consumption_records
+            if record.get('patient_id') != patient_id
+        ]
+        # Save updated consumption data
+        if len(updated_consumption) < len(consumption_records):
+            save_data('consumption', updated_consumption)
+
+    # Step 2: Delete the patient record
     patients = get_patients()
     patients = [p for p in patients if p['id'] != patient_id]
     save_data('patients', patients)
+
+    # Step 3: Renumber patients and cascade update all references (unless skipped for bulk operations)
+    if not skip_renumber:
+        id_mapping = renumber_ids('patients', protect_ids=[])
+        cascade_update_patient_references(id_mapping)
 
 # Supplier functions
 def get_suppliers() -> List[Dict]:
@@ -758,11 +1004,16 @@ def update_supplier(supplier_id: str, supplier_data: Dict):
             break
     save_data('suppliers', suppliers)
 
-def delete_supplier(supplier_id: str):
-    """Delete supplier"""
+def delete_supplier(supplier_id: str, skip_renumber: bool = False):
+    """Delete supplier and optionally renumber remaining records"""
     suppliers = get_suppliers()
     suppliers = [s for s in suppliers if s['id'] != supplier_id]
     save_data('suppliers', suppliers)
+
+    # Renumber suppliers and cascade update all references (unless skipped for bulk operations)
+    if not skip_renumber:
+        id_mapping = renumber_ids('suppliers', protect_ids=[])
+        cascade_update_supplier_references(id_mapping)
 
 # Department functions
 def get_departments() -> List[Dict]:
@@ -814,11 +1065,16 @@ def update_department(department_id: str, department_data: Dict):
             break
     save_data('departments', departments)
 
-def delete_department(department_id: str):
-    """Delete department"""
+def delete_department(department_id: str, skip_renumber: bool = False):
+    """Delete department and optionally renumber remaining records"""
     departments = get_departments()
     departments = [d for d in departments if d['id'] != department_id]
     save_data('departments', departments)
+
+    # Renumber departments and cascade update all references (protect Main Pharmacy) (unless skipped for bulk operations)
+    if not skip_renumber:
+        id_mapping = renumber_ids('departments', protect_ids=['01'])
+        cascade_update_department_references(id_mapping)
 
 # Store functions
 def get_stores() -> List[Dict]:
@@ -906,6 +1162,10 @@ def delete_store(store_id: str):
     stores = [s for s in stores if s['id'] != store_id]
     save_data('stores', stores)
 
+    # Renumber stores and cascade update all references (protect Main Store)
+    id_mapping = renumber_ids('stores', protect_ids=['01'])
+    cascade_update_store_references(id_mapping)
+
     return True, "Store deleted successfully and inventory transferred to main store"
 
 def delete_department_and_store(department_id: str):
@@ -972,10 +1232,13 @@ def update_purchase(purchase_id: str, purchase_data: Dict):
     save_data('purchases', purchases)
 
 def delete_purchase(purchase_id: str):
-    """Delete purchase"""
+    """Delete purchase and renumber remaining records"""
     purchases = get_purchases()
     purchases = [p for p in purchases if p['id'] != purchase_id]
     save_data('purchases', purchases)
+
+    # Renumber purchases (no cascade needed - purchases don't have foreign keys referencing them)
+    renumber_ids('purchases', protect_ids=[])
 
 # Consumption functions
 def get_consumption() -> List[Dict]:
@@ -1009,10 +1272,13 @@ def update_consumption(consumption_id: str, consumption_data: Dict):
     save_data('consumption', consumption)
 
 def delete_consumption(consumption_id: str):
-    """Delete consumption"""
+    """Delete consumption and renumber remaining records"""
     consumption = get_consumption()
     consumption = [c for c in consumption if c['id'] != consumption_id]
     save_data('consumption', consumption)
+
+    # Renumber consumption (no cascade needed - consumption doesn't have foreign keys referencing it)
+    renumber_ids('consumption', protect_ids=[])
 
 def update_main_store_inventory(medicines: List[Dict], operation: str):
     """Update main store inventory (for purchases)"""

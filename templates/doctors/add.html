@@ -49,6 +49,22 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
+                                <label for="department_id" class="form-label">Department</label>
+                                <select class="form-select" id="department_id" name="department_id">
+                                    <option value="">Select Department</option>
+                                    {% for department in departments %}
+                                        {% if department.id != '01' %}
+                                        <option value="{{ department.id }}">{{ department.name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
                                 <label for="specialist" class="form-label">Specialist</label>
                                 <select class="form-select" id="specialist" name="specialist">
                                     <option value="">Select Specialist</option>
@@ -58,9 +74,6 @@
                                 </select>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="position" class="form-label">Position</label>
@@ -72,6 +85,9 @@
                                 </select>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="type" class="form-label">Type</label>

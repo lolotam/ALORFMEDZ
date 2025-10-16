@@ -1,0 +1,61 @@
+[
+  {
+    "id": "01",
+    "name": "Main Pharmacy Store",
+    "department_id": "01",
+    "location": "Building B, Floor 4",
+    "description": "Store for Main Pharmacy",
+    "inventory": {
+      "01": 471,
+      "02": 205,
+      "03": 431,
+      "04": 381,
+      "05": 206
+    },
+    "created_at": "2024-08-05T07:30:30.395230"
+  },
+  {
+    "id": "02",
+    "name": "Emergency Department Store",
+    "department_id": "02",
+    "location": "Building B, Floor 3",
+    "description": "Store for Emergency Department",
+    "inventory": {
+      "01": 12
+    },
+    "created_at": "2024-09-25T07:30:30.395233"
+  },
+  {
+    "id": "03",
+    "name": "Intensive Care Unit Store",
+    "department_id": "03",
+    "location": "Building C, Floor 1",
+    "description": "Store for Intensive Care Unit",
+    "inventory": {
+      "02": 6
+    },
+    "created_at": "2024-10-13T07:30:30.395236"
+  },
+  {
+    "id": "04",
+    "name": "Cardiology Store",
+    "department_id": "04",
+    "location": "Building B, Floor 2",
+    "description": "Store for Cardiology",
+    "inventory": {
+      "03": 8
+    },
+    "created_at": "2024-11-03T07:30:30.395238"
+  },
+  {
+    "id": "05",
+    "name": "Oncology Store",
+    "department_id": "05",
+    "location": "Building B, Floor 4",
+    "description": "Store for Oncology",
+    "inventory": {
+      "04": 43
+    },
+    "created_at": "2024-06-04T07:30:30.395240"
+  }
+]

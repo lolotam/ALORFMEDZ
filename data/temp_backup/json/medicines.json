@@ -1,0 +1,62 @@
+[
+  {
+    "id": "01",
+    "name": "Paracetamol",
+    "supplier_id": "01",
+    "category": "Analgesics",
+    "form_dosage": "Capsule 250mg",
+    "strength": "180mg",
+    "low_stock_limit": 46,
+    "unit_price": 48.24,
+    "notes": "Standard Analgesics medication",
+    "created_at": "2025-08-01T07:30:30.395309"
+  },
+  {
+    "id": "02",
+    "name": "Ibuprofen",
+    "supplier_id": "02",
+    "category": "Anti-inflammatory",
+    "form_dosage": "Syrup 100ml",
+    "strength": "171units",
+    "low_stock_limit": 32,
+    "unit_price": 17.5,
+    "notes": "Standard Anti-inflammatory medication",
+    "created_at": "2025-07-27T07:30:30.395320"
+  },
+  {
+    "id": "03",
+    "name": "Amoxicillin",
+    "supplier_id": "03",
+    "category": "Antibiotics",
+    "form_dosage": "Syrup 100ml",
+    "strength": "370mg",
+    "low_stock_limit": 32,
+    "unit_price": 3.64,
+    "notes": "Standard Antibiotics medication",
+    "created_at": "2025-07-19T07:30:30.395327"
+  },
+  {
+    "id": "04",
+    "name": "Metformin",
+    "supplier_id": "04",
+    "category": "Diabetes",
+    "form_dosage": "Capsule 250mg",
+    "strength": "394ml",
+    "low_stock_limit": 40,
+    "unit_price": 48.88,
+    "notes": "Standard Diabetes medication",
+    "created_at": "2025-07-01T07:30:30.395334"
+  },
+  {
+    "id": "05",
+    "name": "Lisinopril",
+    "supplier_id": "05",
+    "category": "Cardiovascular",
+    "form_dosage": "Capsule 250mg",
+    "strength": "383units",
+    "low_stock_limit": 29,
+    "unit_price": 44.85,
+    "notes": "Standard Cardiovascular medication",
+    "created_at": "2025-07-23T07:30:30.395340"
+  }
+]

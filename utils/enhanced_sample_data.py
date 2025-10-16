@@ -149,8 +149,9 @@ class EnhancedSampleDataGenerator:
         if not data:
             return
 
-        fieldnames = ['id', 'name', 'department_id', 'specialization', 'qualification',
-                     'phone', 'email', 'license_number', 'notes', 'created_at']
+        fieldnames = ['id', 'dr_name', 'gender', 'nationality', 'department_id', 'specialist',
+                     'position', 'type', 'mobile_no', 'email', 'license_number', 'note',
+                     'created_at', 'updated_at']
 
         with open(csv_path, 'w', newline='', encoding='utf-8') as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -474,6 +475,7 @@ class EnhancedSampleDataGenerator:
             "MD, FACEP", "MD, FACC", "MD, FACP",
             "MD, PhD", "MD, FCCM"
         ]
+        nationalities = ["American", "British", "Canadian", "Australian", "Indian"]
 
         for i in range(count):
             # Assign to department if available
@@ -481,15 +483,19 @@ class EnhancedSampleDataGenerator:
 
             doctor = {
                 'id': f"{i+1:02d}",
-                'name': doctor_names[i] if i < len(doctor_names) else f"Dr. Doctor {i+1}",
+                'dr_name': doctor_names[i] if i < len(doctor_names) else f"Dr. Doctor {i+1}",
+                'gender': random.choice(['male', 'female']),
+                'nationality': nationalities[i] if i < len(nationalities) else 'American',
                 'department_id': department_id,
-                'specialization': specializations[i] if i < len(specializations) else 'General Medicine',
-                'qualification': qualifications[i] if i < len(qualifications) else 'MD',
-                'phone': f"+1-555-{random.randint(100, 999)}-{random.randint(1000, 9999)}",
+                'specialist': specializations[i] if i < len(specializations) else 'General Medicine',
+                'position': qualifications[i] if i < len(qualifications) else 'MD',
+                'type': random.choice(['employee', 'visitor']),
+                'mobile_no': f"+1-555-{random.randint(100, 999)}-{random.randint(1000, 9999)}",
                 'email': f"doctor{i+1}@hospital.com",
                 'license_number': f"MD{random.randint(10000, 99999)}",
-                'notes': f"Experienced {specializations[i] if i < len(specializations) else 'General Medicine'} specialist",
-                'created_at': (datetime.now() - timedelta(days=random.randint(100, 1000))).isoformat()
+                'note': f"Experienced {specializations[i] if i < len(specializations) else 'General Medicine'} specialist",
+                'created_at': (datetime.now() - timedelta(days=random.randint(100, 1000))).isoformat(),
+                'updated_at': datetime.now().isoformat()
             }
             doctors.append(doctor)
 
@@ -540,6 +546,8 @@ class EnhancedSampleDataGenerator:
         patients = []
         first_names = ['John', 'Jane', 'Michael', 'Sarah', 'David']
         last_names = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones']
+        # Department IDs excluding Main Pharmacy (01)
+        department_ids = ['02', '03', '04', '05']
 
         for i in range(count):
             patient = {
@@ -551,6 +559,15 @@ class EnhancedSampleDataGenerator:
                 'address': f"{random.randint(100, 9999)} {random.choice(['Main', 'Oak', 'Pine'])} Street",
                 'medical_history': random.choice(['Diabetes', 'Hypertension', 'Asthma', 'Heart Disease', 'None']),
                 'allergies': random.choice(['None', 'Penicillin', 'Aspirin', 'Latex']),
+                'file_no': f"PAT-{datetime.now().year}-{i+1:04d}",
+                'department_id': random.choice(department_ids),
+                'notes': random.choice([
+                    'Regular checkup required',
+                    'Follow-up appointment scheduled',
+                    'Requires special attention',
+                    'Chronic condition monitoring',
+                    'Post-operative care'
+                ]),
                 'created_at': (datetime.now() - timedelta(days=random.randint(1, 180))).isoformat()
             }
             patients.append(patient)
@@ -560,6 +577,7 @@ class EnhancedSampleDataGenerator:
     def generate_purchases(self, count=5, medicines=None, suppliers=None):
         """Generate purchase records"""
         purchases = []
+        receiver_names = ['John Smith', 'Sarah Johnson', 'Michael Brown', 'Emily Davis', 'David Wilson']
 
         for i in range(count):
             supplier = suppliers[i % len(suppliers)] if suppliers else {'id': '01'}
@@ -579,16 +597,22 @@ class EnhancedSampleDataGenerator:
                     'quantity': quantity
                 })
 
+            purchase_date = datetime.now() - timedelta(days=random.randint(1, 60))
+            # Delivery date is 1-7 days after purchase date
+            delivery_date = purchase_date + timedelta(days=random.randint(1, 7))
+
             purchase = {
                 'id': f"{i+1:02d}",
                 'supplier_id': supplier['id'],
                 'invoice_number': f"INV-{random.randint(1000, 9999)}",
-                'date': (datetime.now() - timedelta(days=random.randint(1, 60))).isoformat()[:10],
+                'date': purchase_date.isoformat()[:10],
                 'medicines': purchase_medicines,
                 'purchaser_name': f"Purchaser {i+1}",
-                'status': 'complete',
+                'status': 'delivered',
+                'delivery_date': delivery_date.isoformat()[:10],
+                'received_by': random.choice(receiver_names),
                 'notes': f"Purchase from {supplier.get('name', 'Supplier')}",
-                'created_at': (datetime.now() - timedelta(days=random.randint(1, 60))).isoformat()
+                'created_at': purchase_date.isoformat()
             }
             purchases.append(purchase)
 
@@ -597,6 +621,8 @@ class EnhancedSampleDataGenerator:
     def generate_consumption(self, count=5, patients=None, medicines=None):
         """Generate consumption records"""
         consumption_records = []
+        # Department IDs excluding Main Pharmacy (01)
+        department_ids = ['02', '03', '04', '05']
 
         for i in range(count):
             patient = patients[i] if patients and i < len(patients) else {'id': f"{i+1:02d}"}
@@ -607,9 +633,13 @@ class EnhancedSampleDataGenerator:
                 'quantity': random.randint(1, 10)
             }]
 
+            # Use patient's department if available, otherwise random
+            department_id = patient.get('department_id', random.choice(department_ids))
+
             consumption = {
                 'id': f"{i+1:02d}",
                 'patient_id': patient['id'],
+                'department_id': department_id,
                 'date': (datetime.now() - timedelta(days=random.randint(1, 30))).isoformat()[:10],
                 'medicines': consumption_medicines,
                 'prescribed_by': f"Dr. {random.choice(['Smith', 'Johnson', 'Williams'])}",

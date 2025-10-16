@@ -1,0 +1,5 @@
+Transfer ID,Source Store ID,Destination Store ID,Medicine ID,Quantity,Transfer Date,Status,Notes,Created At
+01,01,02,01,12,2025-10-15,completed,Transfer to Emergency Department Store,2025-10-14T07:30:30.395500
+02,01,03,02,6,2025-10-12,completed,Transfer to Intensive Care Unit Store,2025-09-28T07:30:30.395507
+03,01,04,03,8,2025-10-08,completed,Transfer to Cardiology Store,2025-10-07T07:30:30.395514
+04,01,05,04,43,2025-10-14,completed,Transfer to Oncology Store,2025-10-13T07:30:30.395520

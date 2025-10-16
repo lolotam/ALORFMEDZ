@@ -146,7 +146,7 @@
                     </a>
                 </div>
                 <div class="mt-2">
-                    <button class="btn btn-outline-warning btn-sm w-100" onclick="generateSampleData()">
+                    <button class="btn btn-outline-warning btn-sm w-100" data-bs-toggle="modal" data-bs-target="#confirmSampleDataModal">
                         <i class="bi bi-database-add"></i> Generate Sample Data
                     </button>
                 </div>
@@ -183,6 +183,47 @@
                         <p><strong>Login Time:</strong> {{ moment().format('YYYY-MM-DD HH:mm:ss') if moment else 'Current session' }}</p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal for Sample Data Generation -->
+<div class="modal fade" id="confirmSampleDataModal" tabindex="-1" aria-labelledby="confirmSampleDataModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="confirmSampleDataModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Warning: Data Deletion
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger mb-3">
+                    <i class="bi bi-exclamation-octagon-fill"></i> <strong>CRITICAL WARNING</strong>
+                </div>
+                <p class="fw-bold">This function will remove ALL current data in the database and replace it with sample data.</p>
+                <p class="text-danger fw-bold">This action CANNOT be undone!</p>
+                <p>All existing records will be permanently deleted, including:</p>
+                <ul>
+                    <li>Medicines</li>
+                    <li>Patients</li>
+                    <li>Doctors</li>
+                    <li>Suppliers</li>
+                    <li>Departments (except Main Pharmacy)</li>
+                    <li>Purchases</li>
+                    <li>Consumption records</li>
+                    <li>Transfers</li>
+                </ul>
+                <p class="mt-3"><strong>Do you want to proceed?</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-danger" onclick="proceedWithSampleData()">
+                    <i class="bi bi-check-circle"></i> Yes, Proceed
+                </button>
             </div>
         </div>
     </div>
@@ -234,10 +275,28 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-function generateSampleData() {
-    if (confirm('This will replace all existing data with comprehensive sample data. Are you sure?')) {
-        window.location.href = '{{ url_for("settings.generate_sample_data") }}';
+// Function called when user confirms sample data generation
+function proceedWithSampleData() {
+    // Close the modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('confirmSampleDataModal'));
+    if (modal) {
+        modal.hide();
     }
+
+    // Show loading indicator
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'alert alert-info alert-dismissible fade show position-fixed';
+    loadingDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    loadingDiv.innerHTML = `
+        <div class="spinner-border spinner-border-sm me-2" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        Generating sample data...
+    `;
+    document.body.appendChild(loadingDiv);
+
+    // Redirect to generate sample data
+    window.location.href = '{{ url_for("settings.generate_sample_data") }}';
 }
 </script>
 {% endblock %}

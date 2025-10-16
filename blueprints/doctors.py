@@ -4,7 +4,7 @@ Handles doctor registration, management, and operations
 """
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_file
-from utils.database import load_data, save_data, log_activity, generate_id
+from utils.database import load_data, save_data, log_activity, generate_id, get_departments
 from utils.helpers import login_required
 from datetime import datetime
 import json
@@ -91,6 +91,9 @@ def index():
     if sort_by in ['dr_name', 'specialist', 'position', 'type', 'gender', 'nationality']:
         doctors.sort(key=lambda x: x.get(sort_by, '').lower(), reverse=reverse)
 
+    # Load departments
+    departments = get_departments()
+
     # Log activity
     log_activity('VIEW', 'doctors_list', None, {
         'total_doctors': len(doctors),
@@ -99,6 +102,7 @@ def index():
 
     return render_template('doctors/index.html',
                          doctors=doctors,
+                         departments=departments,
                          specialist_options=SPECIALIST_OPTIONS,
                          position_options=POSITION_OPTIONS,
                          type_options=TYPE_OPTIONS,
@@ -124,6 +128,7 @@ def add():
             'dr_name': request.form.get('dr_name', '').strip(),
             'gender': request.form.get('gender', ''),
             'nationality': request.form.get('nationality', '').strip(),
+            'department_id': request.form.get('department_id', '').strip(),
             'specialist': request.form.get('specialist', ''),
             'position': request.form.get('position', ''),
             'type': request.form.get('type', ''),
@@ -177,11 +182,15 @@ def add():
             flash(f'Error adding doctor: {str(e)}', 'error')
             return redirect(url_for('doctors.add'))
 
+    # Load departments for the dropdown
+    departments = get_departments()
+
     return render_template('doctors/add.html',
                          specialist_options=SPECIALIST_OPTIONS,
                          position_options=POSITION_OPTIONS,
                          type_options=TYPE_OPTIONS,
-                         gender_options=GENDER_OPTIONS)
+                         gender_options=GENDER_OPTIONS,
+                         departments=departments)
 
 @doctors_bp.route('/edit/<doctor_id>', methods=['GET', 'POST'])
 @login_required
@@ -214,6 +223,7 @@ def edit(doctor_id):
             'dr_name': request.form.get('dr_name', '').strip(),
             'gender': request.form.get('gender', ''),
             'nationality': request.form.get('nationality', '').strip(),
+            'department_id': request.form.get('department_id', '').strip(),
             'specialist': request.form.get('specialist', ''),
             'position': request.form.get('position', ''),
             'type': request.form.get('type', ''),
@@ -267,12 +277,16 @@ def edit(doctor_id):
             flash(f'Error updating doctor: {str(e)}', 'error')
             return redirect(url_for('doctors.edit', doctor_id=doctor_id))
 
+    # Load departments for the dropdown
+    departments = get_departments()
+
     return render_template('doctors/edit.html',
                          doctor=doctor,
                          specialist_options=SPECIALIST_OPTIONS,
                          position_options=POSITION_OPTIONS,
                          type_options=TYPE_OPTIONS,
-                         gender_options=GENDER_OPTIONS)
+                         gender_options=GENDER_OPTIONS,
+                         departments=departments)
 
 @doctors_bp.route('/preview/<doctor_id>')
 @login_required
@@ -285,12 +299,15 @@ def preview(doctor_id):
         flash('Doctor not found.', 'error')
         return redirect(url_for('doctors.index'))
 
+    # Load departments
+    departments = get_departments()
+
     # Log activity
     log_activity('VIEW', 'doctor_preview', doctor_id, {
         'doctor_name': doctor.get('dr_name')
     })
 
-    return render_template('doctors/preview.html', doctor=doctor)
+    return render_template('doctors/preview.html', doctor=doctor, departments=departments)
 
 @doctors_bp.route('/delete/<doctor_id>', methods=['POST'])
 @login_required
@@ -371,7 +388,7 @@ def export():
         writer = csv.writer(output)
 
         # Write headers
-        writer.writerow(['ID', 'Doctor Name', 'Gender', 'Nationality', 'Specialist',
+        writer.writerow(['ID', 'Doctor Name', 'Gender', 'Nationality', 'Department ID', 'Specialist',
                         'Position', 'Type', 'Mobile No', 'Email', 'Note', 'Created At', 'Updated At'])
 
         # Write data
@@ -381,6 +398,7 @@ def export():
                 doctor.get('dr_name', ''),
                 doctor.get('gender', ''),
                 doctor.get('nationality', ''),
+                doctor.get('department_id', ''),
                 doctor.get('specialist', ''),
                 doctor.get('position', ''),
                 doctor.get('type', ''),
@@ -467,6 +485,7 @@ def import_doctors():
                         'dr_name': dr_name,
                         'gender': gender,
                         'nationality': row.get('Nationality', '').strip(),
+                        'department_id': row.get('Department ID', '').strip(),
                         'specialist': row.get('Specialist', '').strip().lower(),
                         'position': row.get('Position', '').strip().lower(),
                         'type': row.get('Type', '').strip().lower(),

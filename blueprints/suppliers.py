@@ -161,17 +161,24 @@ def bulk_delete():
                     failed_items.append(f"Supplier ID {supplier_id} has associated medicines")
                     continue
 
-                delete_supplier(supplier_id)
+                # Skip renumbering during bulk delete (will renumber once at the end)
+                delete_supplier(supplier_id, skip_renumber=True)
                 deleted_count += 1
 
             except Exception as e:
                 failed_items.append(f"Supplier ID {supplier_id}: {str(e)}")
 
+        # Renumber once after all deletions are complete
+        if deleted_count > 0:
+            from utils.database import renumber_ids, cascade_update_supplier_references
+            id_mapping = renumber_ids('suppliers', protect_ids=[])
+            cascade_update_supplier_references(id_mapping)
+
         # Log the bulk delete activity
         log_activity(
-            user_id=session.get('user_id'),
             action='bulk_delete',
-            details=f'Bulk deleted {deleted_count} suppliers'
+            entity_type='suppliers',
+            details={'message': f'Bulk deleted {deleted_count} suppliers', 'count': deleted_count}
         )
 
         # Prepare response message

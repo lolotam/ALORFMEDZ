@@ -70,7 +70,7 @@
             <table class="table table-hover" id="doctorsTable">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>#</th>
                         <th>Doctor Name</th>
                         <th>Specialization</th>
                         <th>Department</th>
@@ -85,14 +85,15 @@
                 </thead>
                 <tbody>
                     {% for doctor in doctors %}
-                    <tr data-specialist="{{ doctor.specialization|lower if doctor.specialization else '' }}"
+                    <tr data-id="{{ doctor.id }}"
+                        data-specialist="{{ doctor.specialist|lower if doctor.specialist else '' }}"
                         data-gender="{{ doctor.gender|lower if doctor.gender else '' }}"
                         data-type="{{ doctor.type|lower if doctor.type else '' }}">
-                        <td>{{ doctor.id }}</td>
-                        <td><strong>{{ doctor.name }}</strong></td>
+                        <td>{{ loop.index }}</td>
+                        <td><strong>{{ doctor.dr_name }}</strong></td>
                         <td>
-                            {% if doctor.specialization %}
-                                <span class="badge bg-info">{{ doctor.specialization }}</span>
+                            {% if doctor.specialist %}
+                                <span class="badge bg-info">{{ doctor.specialist|title }}</span>
                             {% else %}
                                 <span class="text-muted">N/A</span>
                             {% endif %}
@@ -106,8 +107,8 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if doctor.qualification %}
-                                <span class="badge bg-secondary">{{ doctor.qualification }}</span>
+                            {% if doctor.position %}
+                                <span class="badge bg-secondary">{{ doctor.position|title }}</span>
                             {% else %}
                                 <span class="text-muted">N/A</span>
                             {% endif %}
@@ -123,9 +124,9 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if doctor.phone %}
-                                <a href="tel:{{ doctor.phone }}" class="text-decoration-none">
-                                    <i class="bi bi-telephone"></i> {{ doctor.phone }}
+                            {% if doctor.mobile_no or doctor.phone %}
+                                <a href="tel:{{ doctor.mobile_no or doctor.phone }}" class="text-decoration-none">
+                                    <i class="bi bi-telephone"></i> {{ doctor.mobile_no or doctor.phone }}
                                 </a>
                             {% else %}
                                 <span class="text-muted">N/A</span>
@@ -148,8 +149,9 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if doctor.notes %}
-                                {{ doctor.notes[:30] }}{% if doctor.notes|length > 30 %}...{% endif %}
+                            {% if doctor.note or doctor.notes %}
+                                {% set note_text = doctor.note or doctor.notes %}
+                                {{ note_text[:30] }}{% if note_text|length > 30 %}...{% endif %}
                             {% else %}
                                 <span class="text-muted">No notes</span>
                             {% endif %}

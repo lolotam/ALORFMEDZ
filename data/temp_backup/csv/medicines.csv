@@ -1,0 +1,6 @@
+id,name,supplier_id,category,form_dosage,strength,low_stock_limit,unit_price,notes,created_at
+01,Paracetamol,01,Analgesics,Capsule 250mg,180mg,46,48.24,Standard Analgesics medication,2025-08-01T07:30:30.395309
+02,Ibuprofen,02,Anti-inflammatory,Syrup 100ml,171units,32,17.5,Standard Anti-inflammatory medication,2025-07-27T07:30:30.395320
+03,Amoxicillin,03,Antibiotics,Syrup 100ml,370mg,32,3.64,Standard Antibiotics medication,2025-07-19T07:30:30.395327
+04,Metformin,04,Diabetes,Capsule 250mg,394ml,40,48.88,Standard Diabetes medication,2025-07-01T07:30:30.395334
+05,Lisinopril,05,Cardiovascular,Capsule 250mg,383units,29,44.85,Standard Cardiovascular medication,2025-07-23T07:30:30.395340
