@@ -31,6 +31,18 @@ def upload_photo(category):
         photo_info = save_uploaded_photo(file, category, entity_id)
 
         if photo_info:
+            # Update medicine record if uploading to medicines
+            if category == 'medicines' and entity_id:
+                from utils.database import get_medicines, save_data
+                medicines = get_medicines()
+                medicine = next((m for m in medicines if m['id'] == entity_id), None)
+                if medicine:
+                    if 'photos' not in medicine:
+                        medicine['photos'] = []
+                    if photo_info['filename'] not in medicine['photos']:
+                        medicine['photos'].append(photo_info['filename'])
+                    save_data('medicines', medicines)
+
             # Log activity
             log_activity(
                 action='upload_photo',
@@ -134,6 +146,15 @@ def delete_photo_route(category, filename):
 
         # Delete photo files
         deleted_files = delete_photo(photo_info)
+
+        if category == 'medicines':
+            from utils.database import get_medicines, save_data
+            medicines = get_medicines()
+            for medicine in medicines:
+                if filename in medicine.get('photos', []):
+                    medicine['photos'].remove(filename)
+                    break
+            save_data('medicines', medicines)
 
         # Log activity
         log_activity(
@@ -253,6 +274,19 @@ def list_photos(category):
             return jsonify({'success': False, 'message': 'Invalid category'}), 400
 
         entity_id = request.args.get('entity_id')
+
+        if category == 'medicines' and entity_id:
+            from utils.database import get_medicines
+            medicines = get_medicines()
+            medicine = next((m for m in medicines if m['id'] == entity_id), None)
+            if medicine:
+                photo_filenames = medicine.get('photos', [])
+                photos = []
+                for filename in photo_filenames:
+                    photo_info = get_photo_info(filename, category)
+                    if photo_info:
+                        photos.append(photo_info)
+                return jsonify({'success': True, 'photos': photos, 'count': len(photos)}), 200
 
         from utils.upload import UPLOAD_FOLDER
         import glob

@@ -17,7 +17,7 @@
                 <h5 class="card-title mb-0">Medicine Information</h5>
             </div>
             <div class="card-body">
-                <form method="POST" novalidate>
+                <form method="POST" enctype="multipart/form-data" novalidate>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -48,8 +48,12 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="form_dosage" class="form-label">Form/Dosage</label>
-                                <input type="text" class="form-control" id="form_dosage" name="form_dosage" 
-                                       placeholder="e.g., Tablet 500mg, Syrup 100ml">
+                                <select class="form-select" id="form_dosage" name="form_dosage">
+                                    <option value="">Select Form/Dosage</option>
+                                    {% for form in forms %}
+                                    <option value="{{ form.name }}">{{ form.name }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -100,7 +104,7 @@
                         </div>
                     </div>
 
-                    <!-- Photo Upload Section -->
+    <input type="hidden" id="photo_filename" name="photo_filename">
                     <div class="mb-4">
                         <label class="form-label">Medicine Photos</label>
                         <div class="card">
@@ -161,7 +165,13 @@ document.addEventListener('DOMContentLoaded', function() {
         maxFiles: 5,
         showPreview: true,
         onSuccess: function(result) {
-            console.log('Photos uploaded successfully:', result);
+            if (result.photos && result.photos.length > 0) {
+                const filenames = result.photos.map(p => p.filename).join(',');
+                document.getElementById('photo_filename').value = filenames;
+            } else if (result.photo && result.photo.filename) {
+                document.getElementById('photo_filename').value = result.photo.filename;
+            }
+            console.log('Photo uploaded successfully:', result);
         },
         onError: function(error) {
             console.error('Photo upload error:', error);

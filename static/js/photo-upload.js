@@ -184,16 +184,19 @@ class PhotoUpload {
         if (this.options.maxFiles > 1) {
             const uploadButton = document.createElement('div');
             uploadButton.className = 'mt-2';
+            // Sanitize container ID for use in JavaScript variable names (replace hyphens with underscores)
+            const sanitizedId = this.container.id.replace(/-/g, '_');
             uploadButton.innerHTML = `
-                <button type="button" class="btn btn-primary btn-sm" onclick="photoUpload_${this.container.id}.upload()">
+                <button type="button" class="btn btn-primary btn-sm" onclick="photoUpload_${sanitizedId}.upload()">
                     <i class="bi bi-upload"></i> Upload ${files.length} Photo(s)
                 </button>
             `;
             this.previewContainer.appendChild(uploadButton);
         }
 
-        // Store reference for button onclick
-        window[`photoUpload_${this.container.id}`] = this;
+        // Store reference for button onclick (sanitize ID for JavaScript variable names)
+        const sanitizedId = this.container.id.replace(/-/g, '_');
+        window[`photoUpload_${sanitizedId}`] = this;
     }
 
     async upload() {

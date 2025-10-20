@@ -25,7 +25,8 @@ DB_FILES = {
     'purchases': os.path.join(DATA_DIR, 'purchases.json'),
     'consumption': os.path.join(DATA_DIR, 'consumption.json'),
     'history': os.path.join(DATA_DIR, 'history.json'),
-    'transfers': os.path.join(DATA_DIR, 'transfers.json')
+    'transfers': os.path.join(DATA_DIR, 'transfers.json'),
+    'forms': os.path.join(DATA_DIR, 'forms.json')
 }
 
 def ensure_main_entities():
@@ -906,6 +907,10 @@ def migrate_medicine_fields():
             medicine.pop('form', None)
             updated = True
 
+        if 'photos' not in medicine:
+            medicine['photos'] = []
+            updated = True
+
     if updated:
         save_data('medicines', medicines)
         return True
@@ -1533,3 +1538,7 @@ def get_medicine_name(medicine_id):
     medicines = get_medicines()
     medicine = next((m for m in medicines if m['id'] == medicine_id), None)
     return medicine['name'] if medicine else 'Unknown Medicine'
+
+def get_forms() -> List[Dict]:
+    """Get all forms"""
+    return load_data('forms')

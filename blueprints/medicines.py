@@ -9,7 +9,8 @@ import io
 import re
 from datetime import datetime, timedelta
 from utils.helpers import login_required, admin_required
-from utils.database import get_medicines, save_medicine, update_medicine, delete_medicine, get_suppliers, get_stores, log_activity, migrate_medicine_fields
+from utils.upload import save_uploaded_photo
+from utils.database import get_medicines, save_medicine, update_medicine, delete_medicine, get_suppliers, get_stores, log_activity, migrate_medicine_fields, get_forms
 
 
 def convert_date_format(date_str):
@@ -246,6 +247,8 @@ def add():
                 suppliers = get_suppliers()
                 return render_template('medicines/add.html', suppliers=suppliers)
 
+        # Get photo filenames from the hidden field (uploaded via AJAX)
+        photo_filenames = request.form.get('photo_filename', '').split(',')
         medicine_data = {
             'name': name,
             'supplier_id': supplier_id,
@@ -254,9 +257,10 @@ def add():
             'notes': notes,
             'expiry_date': expiry_date if expiry_date else None,
             'batch_number': batch_number if batch_number else None,
-            'barcode_number': barcode_number if barcode_number else None
+            'barcode_number': barcode_number if barcode_number else None,
+            'photos': [f.strip() for f in photo_filenames if f.strip()]
         }
-        
+
         medicine_id = save_medicine(medicine_data)
 
         # Log activity
@@ -269,7 +273,8 @@ def add():
         return redirect(url_for('medicines.index'))
     
     suppliers = get_suppliers()
-    return render_template('medicines/add.html', suppliers=suppliers)
+    forms = get_forms()
+    return render_template('medicines/add.html', suppliers=suppliers, forms=forms)
 
 @medicines_bp.route('/edit/<medicine_id>', methods=['GET', 'POST'])
 @login_required
@@ -295,6 +300,8 @@ def edit(medicine_id):
                 suppliers = get_suppliers()
                 return render_template('medicines/edit.html', medicine=medicine, suppliers=suppliers)
 
+        # Get photo filenames from the hidden field (uploaded via AJAX)
+        photo_filenames = request.form.get('photo_filename', '').split(',')
         medicine_data = {
             'name': request.form.get('name'),
             'supplier_id': request.form.get('supplier_id'),
@@ -303,7 +310,8 @@ def edit(medicine_id):
             'notes': request.form.get('notes', ''),
             'expiry_date': expiry_date if expiry_date else None,
             'batch_number': request.form.get('batch_number', '').strip() or None,
-            'barcode_number': request.form.get('barcode_number', '').strip() or None
+            'barcode_number': request.form.get('barcode_number', '').strip() or None,
+            'photos': [f.strip() for f in photo_filenames if f.strip()]
         }
 
         update_medicine(medicine_id, medicine_data)
@@ -311,7 +319,8 @@ def edit(medicine_id):
         return redirect(url_for('medicines.index'))
     
     suppliers = get_suppliers()
-    return render_template('medicines/edit.html', medicine=medicine, suppliers=suppliers)
+    forms = get_forms()
+    return render_template('medicines/edit.html', medicine=medicine, suppliers=suppliers, forms=forms)
 
 @medicines_bp.route('/delete/<medicine_id>')
 @login_required

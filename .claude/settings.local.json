@@ -3,7 +3,9 @@
     "allow": [
       "mcp__ssh-mcp__exec",
       "Bash(git add:*)",
-      "WebFetch(domain:alorfmedz.com)"
+      "WebFetch(domain:alorfmedz.com)",
+      "mcp__playwright-mcp__browser_navigate",
+      "mcp__playwright-mcp__browser_fill_form"
     ],
     "deny": [],
     "ask": []

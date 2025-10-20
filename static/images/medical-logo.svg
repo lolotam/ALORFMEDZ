@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Circular background -->
+  <circle cx="50" cy="50" r="45" fill="#0d6efd" stroke="#0a58ca" stroke-width="2"/>
+
+  <!-- Medical cross/plus symbol -->
+  <g fill="white">
+    <!-- Vertical bar of cross -->
+    <rect x="42" y="25" width="16" height="50" rx="2"/>
+    <!-- Horizontal bar of cross -->
+    <rect x="25" y="42" width="50" height="16" rx="2"/>
+  </g>
+
+  <!-- Inner circle for depth -->
+  <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+</svg>
