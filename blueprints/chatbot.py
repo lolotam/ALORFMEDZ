@@ -242,6 +242,110 @@ def test_connection():
     except Exception as e:
         return jsonify({'success': False, 'message': f'Connection test failed: {str(e)}'})
 
+# Cache for OpenRouter models (5 minute TTL)
+_openrouter_models_cache = {
+    'models': [],
+    'timestamp': None
+}
+
+@chatbot_bp.route('/fetch-openrouter-models', methods=['GET'])
+@admin_required
+def fetch_openrouter_models():
+    """Fetch all available models from OpenRouter API"""
+    import time
+    
+    try:
+        config = load_chatbot_config()
+        api_key = config.get('openrouter_api_key', '')
+        
+        # Check cache (5 minute TTL)
+        cache_ttl = 300  # 5 minutes
+        if (_openrouter_models_cache['timestamp'] and 
+            time.time() - _openrouter_models_cache['timestamp'] < cache_ttl and
+            _openrouter_models_cache['models']):
+            return jsonify({
+                'success': True,
+                'models': _openrouter_models_cache['models'],
+                'count': len(_openrouter_models_cache['models']),
+                'cached': True
+            })
+        
+        # Fetch from OpenRouter API
+        headers = {'Content-Type': 'application/json'}
+        if api_key:
+            headers['Authorization'] = f'Bearer {api_key}'
+            
+        response = requests.get(
+            'https://openrouter.ai/api/v1/models',
+            headers=headers,
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            return jsonify({
+                'success': False,
+                'message': f'OpenRouter API error: {response.status_code}',
+                'models': []
+            })
+        
+        data = response.json()
+        models_raw = data.get('data', [])
+        
+        # Process and structure models for frontend
+        models = []
+        for model in models_raw:
+            model_id = model.get('id', '')
+            model_name = model.get('name', model_id)
+            
+            # Extract provider from model ID (e.g., "openai/gpt-4" -> "OpenAI")
+            provider = model_id.split('/')[0].replace('-', ' ').title() if '/' in model_id else 'Other'
+            
+            # Get pricing info
+            pricing = model.get('pricing', {})
+            prompt_price = float(pricing.get('prompt', 0)) * 1000000  # Price per 1M tokens
+            completion_price = float(pricing.get('completion', 0)) * 1000000
+            
+            # Get context length
+            context_length = model.get('context_length', 0)
+            
+            # Get modality
+            architecture = model.get('architecture', {})
+            modality = architecture.get('modality', 'text->text')
+            
+            models.append({
+                'id': model_id,
+                'name': model_name,
+                'provider': provider,
+                'context_length': context_length,
+                'prompt_price': round(prompt_price, 4),
+                'completion_price': round(completion_price, 4),
+                'modality': modality,
+                'description': model.get('description', ''),
+                'is_free': prompt_price == 0 and completion_price == 0
+            })
+        
+        # Sort by provider, then by name
+        models.sort(key=lambda x: (x['provider'].lower(), x['name'].lower()))
+        
+        # Update cache
+        _openrouter_models_cache['models'] = models
+        _openrouter_models_cache['timestamp'] = time.time()
+        
+        return jsonify({
+            'success': True,
+            'models': models,
+            'count': len(models),
+            'cached': False
+        })
+        
+    except Exception as e:
+        print(f"Error fetching OpenRouter models: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'Error fetching models: {str(e)}',
+            'models': []
+        })
+
 @chatbot_bp.route('/sessions/new', methods=['POST'])
 @admin_required
 def new_session():

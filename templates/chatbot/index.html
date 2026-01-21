@@ -41,41 +41,42 @@
 
         <div id="chatSessionsList">
             {% if user_sessions %}
-                {% for session in user_sessions %}
-                <div class="card mb-2 chat-session-card {% if session.id == current_session_id %}border-primary{% endif %}"
-                     data-session-id="{{ session.id }}">
-                    <div class="card-body p-2">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1" onclick="switchToSession('{{ session.id }}')">
-                                <h6 class="card-title mb-1 text-truncate">{{ session.title }}</h6>
-                                <small class="text-muted">
-                                    {{ session.message_count }} messages •
-                                    {{ session.updated_at[:10] }}
-                                </small>
-                            </div>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
-                                        data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-three-dots"></i>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#" onclick="renameSession('{{ session.id }}')">
+            {% for session in user_sessions %}
+            <div class="card mb-2 chat-session-card {% if session.id == current_session_id %}border-primary{% endif %}"
+                data-session-id="{{ session.id }}">
+                <div class="card-body p-2">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1" onclick="switchToSession('{{ session.id }}')">
+                            <h6 class="card-title mb-1 text-truncate">{{ session.title }}</h6>
+                            <small class="text-muted">
+                                {{ session.message_count }} messages •
+                                {{ session.updated_at[:10] }}
+                            </small>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" onclick="renameSession('{{ session.id }}')">
                                         <i class="bi bi-pencil"></i> Rename
                                     </a></li>
-                                    <li><a class="dropdown-item text-danger" href="#" onclick="deleteSession('{{ session.id }}')">
+                                <li><a class="dropdown-item text-danger" href="#"
+                                        onclick="deleteSession('{{ session.id }}')">
                                         <i class="bi bi-trash"></i> Delete
                                     </a></li>
-                                </ul>
-                            </div>
+                            </ul>
                         </div>
                     </div>
                 </div>
-                {% endfor %}
+            </div>
+            {% endfor %}
             {% else %}
-                <div class="text-center text-muted">
-                    <i class="bi bi-chat-dots fs-1"></i>
-                    <p>No chat history yet</p>
-                </div>
+            <div class="text-center text-muted">
+                <i class="bi bi-chat-dots fs-1"></i>
+                <p>No chat history yet</p>
+            </div>
             {% endif %}
         </div>
     </div>
@@ -96,9 +97,9 @@
                     <strong>LLM Status:</strong>
                     <span class="badge {% if config.enabled %}bg-success{% else %}bg-warning{% endif %}" id="llmStatus">
                         {% if config.enabled %}
-                            <i class="bi bi-check-circle"></i> Enabled ({{ config.provider|title }})
+                        <i class="bi bi-check-circle"></i> Enabled ({{ config.provider|title }})
                         {% else %}
-                            <i class="bi bi-exclamation-triangle"></i> Fallback Mode
+                        <i class="bi bi-exclamation-triangle"></i> Fallback Mode
                         {% endif %}
                     </span>
                 </span>
@@ -126,53 +127,56 @@
                 <!-- Chat Messages -->
                 <div class="flex-grow-1 overflow-auto mb-3" id="chatMessages" style="max-height: 450px;">
                     {% if current_messages %}
-                        {% for message in current_messages %}
-                        <div class="message {{ message.sender }}-message">
-                            <div class="d-flex align-items-start mb-3">
-                                <div class="avatar {% if message.sender == 'user' %}bg-secondary{% else %}bg-primary{% endif %} text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                                    <i class="bi {% if message.sender == 'user' %}bi-person{% else %}bi-robot{% endif %}"></i>
+                    {% for message in current_messages %}
+                    <div class="message {{ message.sender }}-message">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="avatar {% if message.sender == 'user' %}bg-secondary{% else %}bg-primary{% endif %} text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                                style="width: 40px; height: 40px;">
+                                <i
+                                    class="bi {% if message.sender == 'user' %}bi-person{% else %}bi-robot{% endif %}"></i>
+                            </div>
+                            <div class="message-content">
+                                <div
+                                    class="{% if message.sender == 'user' %}bg-primary text-white{% else %}bg-light{% endif %} p-3 rounded">
+                                    <p class="mb-0">{{ message.message | safe }}</p>
                                 </div>
-                                <div class="message-content">
-                                    <div class="{% if message.sender == 'user' %}bg-primary text-white{% else %}bg-light{% endif %} p-3 rounded">
-                                        <p class="mb-0">{{ message.message | safe }}</p>
-                                    </div>
-                                    <small class="text-muted">{{ message.timestamp[:16] }}</small>
-                                </div>
+                                <small class="text-muted">{{ message.timestamp[:16] }}</small>
                             </div>
                         </div>
-                        {% endfor %}
+                    </div>
+                    {% endfor %}
                     {% else %}
-                        <div class="message ai-message">
-                            <div class="d-flex align-items-start mb-3">
-                                <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                                    <i class="bi bi-robot"></i>
+                    <div class="message ai-message">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                                style="width: 40px; height: 40px;">
+                                <i class="bi bi-robot"></i>
+                            </div>
+                            <div class="message-content">
+                                <div class="bg-light p-3 rounded">
+                                    <p class="mb-0">Hello! I'm your AI pharmacy assistant. I can help you with:</p>
+                                    <ul class="mb-0 mt-2">
+                                        <li>Medicine inventory queries</li>
+                                        <li>Patient consumption analysis</li>
+                                        <li>Supplier performance insights</li>
+                                        <li>Purchase recommendations</li>
+                                        <li>Stock level monitoring</li>
+                                    </ul>
+                                    <p class="mb-0 mt-2">What would you like to know?</p>
                                 </div>
-                                <div class="message-content">
-                                    <div class="bg-light p-3 rounded">
-                                        <p class="mb-0">Hello! I'm your AI pharmacy assistant. I can help you with:</p>
-                                        <ul class="mb-0 mt-2">
-                                            <li>Medicine inventory queries</li>
-                                            <li>Patient consumption analysis</li>
-                                            <li>Supplier performance insights</li>
-                                            <li>Purchase recommendations</li>
-                                            <li>Stock level monitoring</li>
-                                        </ul>
-                                        <p class="mb-0 mt-2">What would you like to know?</p>
-                                    </div>
-                                    <small class="text-muted">Just now</small>
-                                </div>
+                                <small class="text-muted">Just now</small>
                             </div>
                         </div>
+                    </div>
                     {% endif %}
                 </div>
-                
+
                 <!-- Chat Input -->
                 <div class="border-top pt-3">
                     <form id="chatForm" onsubmit="sendMessage(event)">
                         <div class="input-group">
-                            <input type="text" class="form-control" id="messageInput" 
-                                   placeholder="Ask me anything about your pharmacy data..." 
-                                   autocomplete="off" required>
+                            <input type="text" class="form-control" id="messageInput"
+                                placeholder="Ask me anything about your pharmacy data..." autocomplete="off" required>
                             <button type="submit" class="btn btn-primary" id="sendButton">
                                 <i class="bi bi-send"></i> Send
                             </button>
@@ -202,7 +206,8 @@
             <div class="card-body">
                 <!-- Medicine Questions -->
                 <div class="mb-4">
-                    <div class="d-flex align-items-center mb-3" style="cursor: pointer;" onclick="toggleQuestionCategory('medicines')">
+                    <div class="d-flex align-items-center mb-3" style="cursor: pointer;"
+                        onclick="toggleQuestionCategory('medicines')">
                         <h6 class="mb-0 text-primary">
                             <i class="bi bi-capsule me-2"></i>💊 Medicine Queries
                             <i class="bi bi-chevron-down ms-2" id="medicines-chevron"></i>
@@ -210,47 +215,56 @@
                     </div>
                     <div id="medicines-questions" class="row">
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-primary btn-sm w-100" onclick="askQuickQuestion('medicine count')">
+                            <button class="btn btn-outline-primary btn-sm w-100"
+                                onclick="askQuickQuestion('medicine count')">
                                 <i class="bi bi-hash"></i> Medicine Count
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-primary btn-sm w-100" onclick="askQuickQuestion('list all medicines')">
+                            <button class="btn btn-outline-primary btn-sm w-100"
+                                onclick="askQuickQuestion('list all medicines')">
                                 <i class="bi bi-list-ul"></i> All Medicines
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-danger btn-sm w-100" onclick="askQuickQuestion('show low stock medicines')">
+                            <button class="btn btn-outline-danger btn-sm w-100"
+                                onclick="askQuickQuestion('show low stock medicines')">
                                 <i class="bi bi-exclamation-triangle"></i> Low Stock
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-success btn-sm w-100" onclick="askQuickQuestion('medicines with highest stock')">
+                            <button class="btn btn-outline-success btn-sm w-100"
+                                onclick="askQuickQuestion('medicines with highest stock')">
                                 <i class="bi bi-graph-up"></i> Highest Stock
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-warning btn-sm w-100" onclick="askQuickQuestion('out of stock medicines')">
+                            <button class="btn btn-outline-warning btn-sm w-100"
+                                onclick="askQuickQuestion('out of stock medicines')">
                                 <i class="bi bi-x-circle"></i> Out of Stock
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-info btn-sm w-100" onclick="askQuickQuestion('medicines by category')">
+                            <button class="btn btn-outline-info btn-sm w-100"
+                                onclick="askQuickQuestion('medicines by category')">
                                 <i class="bi bi-tags"></i> By Category
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-secondary btn-sm w-100" onclick="askQuickQuestion('medicines by supplier')">
+                            <button class="btn btn-outline-secondary btn-sm w-100"
+                                onclick="askQuickQuestion('medicines by supplier')">
                                 <i class="bi bi-truck"></i> By Supplier
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-dark btn-sm w-100" onclick="askQuickQuestion('medicines by form')">
+                            <button class="btn btn-outline-dark btn-sm w-100"
+                                onclick="askQuickQuestion('medicines by form')">
                                 <i class="bi bi-capsule-pill"></i> By Form
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-primary btn-sm w-100" onclick="askQuickQuestion('comprehensive medicine analysis')">
+                            <button class="btn btn-outline-primary btn-sm w-100"
+                                onclick="askQuickQuestion('comprehensive medicine analysis')">
                                 <i class="bi bi-bar-chart"></i> Full Analysis
                             </button>
                         </div>
@@ -259,7 +273,8 @@
 
                 <!-- Patient Questions -->
                 <div class="mb-4">
-                    <div class="d-flex align-items-center mb-3" style="cursor: pointer;" onclick="toggleQuestionCategory('patients')">
+                    <div class="d-flex align-items-center mb-3" style="cursor: pointer;"
+                        onclick="toggleQuestionCategory('patients')">
                         <h6 class="mb-0 text-success">
                             <i class="bi bi-person me-2"></i>👥 Patient Queries
                             <i class="bi bi-chevron-right ms-2" id="patients-chevron"></i>
@@ -267,47 +282,56 @@
                     </div>
                     <div id="patients-questions" class="row" style="display: none;">
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-success btn-sm w-100" onclick="askQuickQuestion('patient count')">
+                            <button class="btn btn-outline-success btn-sm w-100"
+                                onclick="askQuickQuestion('patient count')">
                                 <i class="bi bi-hash"></i> Patient Count
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-success btn-sm w-100" onclick="askQuickQuestion('list all patients')">
+                            <button class="btn btn-outline-success btn-sm w-100"
+                                onclick="askQuickQuestion('list all patients')">
                                 <i class="bi bi-list-ul"></i> All Patients
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-info btn-sm w-100" onclick="askQuickQuestion('patients by department')">
+                            <button class="btn btn-outline-info btn-sm w-100"
+                                onclick="askQuickQuestion('patients by department')">
                                 <i class="bi bi-building"></i> By Department
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-primary btn-sm w-100" onclick="askQuickQuestion('patients by gender')">
+                            <button class="btn btn-outline-primary btn-sm w-100"
+                                onclick="askQuickQuestion('patients by gender')">
                                 <i class="bi bi-gender-ambiguous"></i> By Gender
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-warning btn-sm w-100" onclick="askQuickQuestion('patients by age')">
+                            <button class="btn btn-outline-warning btn-sm w-100"
+                                onclick="askQuickQuestion('patients by age')">
                                 <i class="bi bi-calendar"></i> By Age
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-danger btn-sm w-100" onclick="askQuickQuestion('patients with allergies')">
+                            <button class="btn btn-outline-danger btn-sm w-100"
+                                onclick="askQuickQuestion('patients with allergies')">
                                 <i class="bi bi-shield-exclamation"></i> With Allergies
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-secondary btn-sm w-100" onclick="askQuickQuestion('patient consumption patterns')">
+                            <button class="btn btn-outline-secondary btn-sm w-100"
+                                onclick="askQuickQuestion('patient consumption patterns')">
                                 <i class="bi bi-graph-up"></i> Consumption
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-dark btn-sm w-100" onclick="askQuickQuestion('recent patients')">
+                            <button class="btn btn-outline-dark btn-sm w-100"
+                                onclick="askQuickQuestion('recent patients')">
                                 <i class="bi bi-clock"></i> Recent
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-success btn-sm w-100" onclick="askQuickQuestion('comprehensive patient analysis')">
+                            <button class="btn btn-outline-success btn-sm w-100"
+                                onclick="askQuickQuestion('comprehensive patient analysis')">
                                 <i class="bi bi-bar-chart"></i> Full Analysis
                             </button>
                         </div>
@@ -316,7 +340,8 @@
 
                 <!-- Supplier Questions -->
                 <div class="mb-4">
-                    <div class="d-flex align-items-center mb-3" style="cursor: pointer;" onclick="toggleQuestionCategory('suppliers')">
+                    <div class="d-flex align-items-center mb-3" style="cursor: pointer;"
+                        onclick="toggleQuestionCategory('suppliers')">
                         <h6 class="mb-0 text-warning">
                             <i class="bi bi-truck me-2"></i>🏢 Supplier Queries
                             <i class="bi bi-chevron-right ms-2" id="suppliers-chevron"></i>
@@ -324,37 +349,44 @@
                     </div>
                     <div id="suppliers-questions" class="row" style="display: none;">
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-warning btn-sm w-100" onclick="askQuickQuestion('supplier count')">
+                            <button class="btn btn-outline-warning btn-sm w-100"
+                                onclick="askQuickQuestion('supplier count')">
                                 <i class="bi bi-hash"></i> Supplier Count
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-warning btn-sm w-100" onclick="askQuickQuestion('list all suppliers')">
+                            <button class="btn btn-outline-warning btn-sm w-100"
+                                onclick="askQuickQuestion('list all suppliers')">
                                 <i class="bi bi-list-ul"></i> All Suppliers
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-info btn-sm w-100" onclick="askQuickQuestion('supplier contact information')">
+                            <button class="btn btn-outline-info btn-sm w-100"
+                                onclick="askQuickQuestion('supplier contact information')">
                                 <i class="bi bi-telephone"></i> Contact Info
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-success btn-sm w-100" onclick="askQuickQuestion('supplier performance')">
+                            <button class="btn btn-outline-success btn-sm w-100"
+                                onclick="askQuickQuestion('supplier performance')">
                                 <i class="bi bi-star"></i> Performance
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-primary btn-sm w-100" onclick="askQuickQuestion('suppliers by type')">
+                            <button class="btn btn-outline-primary btn-sm w-100"
+                                onclick="askQuickQuestion('suppliers by type')">
                                 <i class="bi bi-tags"></i> By Type
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-secondary btn-sm w-100" onclick="askQuickQuestion('supplier purchase history')">
+                            <button class="btn btn-outline-secondary btn-sm w-100"
+                                onclick="askQuickQuestion('supplier purchase history')">
                                 <i class="bi bi-receipt"></i> Purchase History
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-warning btn-sm w-100" onclick="askQuickQuestion('comprehensive supplier analysis')">
+                            <button class="btn btn-outline-warning btn-sm w-100"
+                                onclick="askQuickQuestion('comprehensive supplier analysis')">
                                 <i class="bi bi-bar-chart"></i> Full Analysis
                             </button>
                         </div>
@@ -363,7 +395,8 @@
 
                 <!-- Department Questions -->
                 <div class="mb-4">
-                    <div class="d-flex align-items-center mb-3" style="cursor: pointer;" onclick="toggleQuestionCategory('departments')">
+                    <div class="d-flex align-items-center mb-3" style="cursor: pointer;"
+                        onclick="toggleQuestionCategory('departments')">
                         <h6 class="mb-0 text-info">
                             <i class="bi bi-building me-2"></i>🏥 Department Queries
                             <i class="bi bi-chevron-right ms-2" id="departments-chevron"></i>
@@ -371,32 +404,38 @@
                     </div>
                     <div id="departments-questions" class="row" style="display: none;">
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-info btn-sm w-100" onclick="askQuickQuestion('department count')">
+                            <button class="btn btn-outline-info btn-sm w-100"
+                                onclick="askQuickQuestion('department count')">
                                 <i class="bi bi-hash"></i> Department Count
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-info btn-sm w-100" onclick="askQuickQuestion('list all departments')">
+                            <button class="btn btn-outline-info btn-sm w-100"
+                                onclick="askQuickQuestion('list all departments')">
                                 <i class="bi bi-list-ul"></i> All Departments
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-primary btn-sm w-100" onclick="askQuickQuestion('department staff')">
+                            <button class="btn btn-outline-primary btn-sm w-100"
+                                onclick="askQuickQuestion('department staff')">
                                 <i class="bi bi-people"></i> Staff Info
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-success btn-sm w-100" onclick="askQuickQuestion('department inventory')">
+                            <button class="btn btn-outline-success btn-sm w-100"
+                                onclick="askQuickQuestion('department inventory')">
                                 <i class="bi bi-box"></i> Inventory
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-warning btn-sm w-100" onclick="askQuickQuestion('department consumption')">
+                            <button class="btn btn-outline-warning btn-sm w-100"
+                                onclick="askQuickQuestion('department consumption')">
                                 <i class="bi bi-graph-up"></i> Consumption
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-info btn-sm w-100" onclick="askQuickQuestion('comprehensive department analysis')">
+                            <button class="btn btn-outline-info btn-sm w-100"
+                                onclick="askQuickQuestion('comprehensive department analysis')">
                                 <i class="bi bi-bar-chart"></i> Full Analysis
                             </button>
                         </div>
@@ -405,7 +444,8 @@
 
                 <!-- Store Questions -->
                 <div class="mb-4">
-                    <div class="d-flex align-items-center mb-3" style="cursor: pointer;" onclick="toggleQuestionCategory('stores')">
+                    <div class="d-flex align-items-center mb-3" style="cursor: pointer;"
+                        onclick="toggleQuestionCategory('stores')">
                         <h6 class="mb-0 text-secondary">
                             <i class="bi bi-box me-2"></i>📦 Store Queries
                             <i class="bi bi-chevron-right ms-2" id="stores-chevron"></i>
@@ -413,32 +453,38 @@
                     </div>
                     <div id="stores-questions" class="row" style="display: none;">
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-secondary btn-sm w-100" onclick="askQuickQuestion('store count')">
+                            <button class="btn btn-outline-secondary btn-sm w-100"
+                                onclick="askQuickQuestion('store count')">
                                 <i class="bi bi-hash"></i> Store Count
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-secondary btn-sm w-100" onclick="askQuickQuestion('list all stores')">
+                            <button class="btn btn-outline-secondary btn-sm w-100"
+                                onclick="askQuickQuestion('list all stores')">
                                 <i class="bi bi-list-ul"></i> All Stores
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-info btn-sm w-100" onclick="askQuickQuestion('store inventory')">
+                            <button class="btn btn-outline-info btn-sm w-100"
+                                onclick="askQuickQuestion('store inventory')">
                                 <i class="bi bi-box-seam"></i> Inventory
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-warning btn-sm w-100" onclick="askQuickQuestion('store capacity')">
+                            <button class="btn btn-outline-warning btn-sm w-100"
+                                onclick="askQuickQuestion('store capacity')">
                                 <i class="bi bi-speedometer"></i> Capacity
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-primary btn-sm w-100" onclick="askQuickQuestion('stores by department')">
+                            <button class="btn btn-outline-primary btn-sm w-100"
+                                onclick="askQuickQuestion('stores by department')">
                                 <i class="bi bi-building"></i> By Department
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-secondary btn-sm w-100" onclick="askQuickQuestion('comprehensive store analysis')">
+                            <button class="btn btn-outline-secondary btn-sm w-100"
+                                onclick="askQuickQuestion('comprehensive store analysis')">
                                 <i class="bi bi-bar-chart"></i> Full Analysis
                             </button>
                         </div>
@@ -447,7 +493,8 @@
 
                 <!-- Purchase Questions -->
                 <div class="mb-4">
-                    <div class="d-flex align-items-center mb-3" style="cursor: pointer;" onclick="toggleQuestionCategory('purchases')">
+                    <div class="d-flex align-items-center mb-3" style="cursor: pointer;"
+                        onclick="toggleQuestionCategory('purchases')">
                         <h6 class="mb-0 text-danger">
                             <i class="bi bi-currency-dollar me-2"></i>💰 Purchase Queries
                             <i class="bi bi-chevron-right ms-2" id="purchases-chevron"></i>
@@ -455,42 +502,50 @@
                     </div>
                     <div id="purchases-questions" class="row" style="display: none;">
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-danger btn-sm w-100" onclick="askQuickQuestion('purchase count')">
+                            <button class="btn btn-outline-danger btn-sm w-100"
+                                onclick="askQuickQuestion('purchase count')">
                                 <i class="bi bi-hash"></i> Purchase Count
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-danger btn-sm w-100" onclick="askQuickQuestion('list all purchases')">
+                            <button class="btn btn-outline-danger btn-sm w-100"
+                                onclick="askQuickQuestion('list all purchases')">
                                 <i class="bi bi-list-ul"></i> All Purchases
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-info btn-sm w-100" onclick="askQuickQuestion('recent purchases')">
+                            <button class="btn btn-outline-info btn-sm w-100"
+                                onclick="askQuickQuestion('recent purchases')">
                                 <i class="bi bi-clock"></i> Recent
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-warning btn-sm w-100" onclick="askQuickQuestion('purchases by supplier')">
+                            <button class="btn btn-outline-warning btn-sm w-100"
+                                onclick="askQuickQuestion('purchases by supplier')">
                                 <i class="bi bi-truck"></i> By Supplier
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-success btn-sm w-100" onclick="askQuickQuestion('expensive purchases')">
+                            <button class="btn btn-outline-success btn-sm w-100"
+                                onclick="askQuickQuestion('expensive purchases')">
                                 <i class="bi bi-gem"></i> Expensive
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-primary btn-sm w-100" onclick="askQuickQuestion('total purchase cost')">
+                            <button class="btn btn-outline-primary btn-sm w-100"
+                                onclick="askQuickQuestion('total purchase cost')">
                                 <i class="bi bi-calculator"></i> Total Cost
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-secondary btn-sm w-100" onclick="askQuickQuestion('purchases by date')">
+                            <button class="btn btn-outline-secondary btn-sm w-100"
+                                onclick="askQuickQuestion('purchases by date')">
                                 <i class="bi bi-calendar"></i> By Date
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-danger btn-sm w-100" onclick="askQuickQuestion('comprehensive purchase analysis')">
+                            <button class="btn btn-outline-danger btn-sm w-100"
+                                onclick="askQuickQuestion('comprehensive purchase analysis')">
                                 <i class="bi bi-bar-chart"></i> Full Analysis
                             </button>
                         </div>
@@ -499,7 +554,8 @@
 
                 <!-- Consumption Questions -->
                 <div class="mb-4">
-                    <div class="d-flex align-items-center mb-3" style="cursor: pointer;" onclick="toggleQuestionCategory('consumption')">
+                    <div class="d-flex align-items-center mb-3" style="cursor: pointer;"
+                        onclick="toggleQuestionCategory('consumption')">
                         <h6 class="mb-0 text-dark">
                             <i class="bi bi-graph-up me-2"></i>📊 Consumption Queries
                             <i class="bi bi-chevron-right ms-2" id="consumption-chevron"></i>
@@ -507,42 +563,50 @@
                     </div>
                     <div id="consumption-questions" class="row" style="display: none;">
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-dark btn-sm w-100" onclick="askQuickQuestion('consumption count')">
+                            <button class="btn btn-outline-dark btn-sm w-100"
+                                onclick="askQuickQuestion('consumption count')">
                                 <i class="bi bi-hash"></i> Record Count
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-dark btn-sm w-100" onclick="askQuickQuestion('list all consumption')">
+                            <button class="btn btn-outline-dark btn-sm w-100"
+                                onclick="askQuickQuestion('list all consumption')">
                                 <i class="bi bi-list-ul"></i> All Records
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-success btn-sm w-100" onclick="askQuickQuestion('consumption by patient')">
+                            <button class="btn btn-outline-success btn-sm w-100"
+                                onclick="askQuickQuestion('consumption by patient')">
                                 <i class="bi bi-person"></i> By Patient
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-primary btn-sm w-100" onclick="askQuickQuestion('consumption by medicine')">
+                            <button class="btn btn-outline-primary btn-sm w-100"
+                                onclick="askQuickQuestion('consumption by medicine')">
                                 <i class="bi bi-capsule"></i> By Medicine
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-info btn-sm w-100" onclick="askQuickQuestion('consumption by department')">
+                            <button class="btn btn-outline-info btn-sm w-100"
+                                onclick="askQuickQuestion('consumption by department')">
                                 <i class="bi bi-building"></i> By Department
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-warning btn-sm w-100" onclick="askQuickQuestion('recent consumption')">
+                            <button class="btn btn-outline-warning btn-sm w-100"
+                                onclick="askQuickQuestion('recent consumption')">
                                 <i class="bi bi-clock"></i> Recent
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-secondary btn-sm w-100" onclick="askQuickQuestion('consumption trends')">
+                            <button class="btn btn-outline-secondary btn-sm w-100"
+                                onclick="askQuickQuestion('consumption trends')">
                                 <i class="bi bi-graph-up-arrow"></i> Trends
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-dark btn-sm w-100" onclick="askQuickQuestion('comprehensive consumption analysis')">
+                            <button class="btn btn-outline-dark btn-sm w-100"
+                                onclick="askQuickQuestion('comprehensive consumption analysis')">
                                 <i class="bi bi-bar-chart"></i> Full Analysis
                             </button>
                         </div>
@@ -551,7 +615,8 @@
 
                 <!-- Transfer Questions -->
                 <div class="mb-4">
-                    <div class="d-flex align-items-center mb-3" style="cursor: pointer;" onclick="toggleQuestionCategory('transfers')">
+                    <div class="d-flex align-items-center mb-3" style="cursor: pointer;"
+                        onclick="toggleQuestionCategory('transfers')">
                         <h6 class="mb-0 text-primary">
                             <i class="bi bi-arrow-left-right me-2"></i>🔄 Transfer Queries
                             <i class="bi bi-chevron-right ms-2" id="transfers-chevron"></i>
@@ -559,37 +624,44 @@
                     </div>
                     <div id="transfers-questions" class="row" style="display: none;">
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-primary btn-sm w-100" onclick="askQuickQuestion('transfer count')">
+                            <button class="btn btn-outline-primary btn-sm w-100"
+                                onclick="askQuickQuestion('transfer count')">
                                 <i class="bi bi-hash"></i> Transfer Count
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-primary btn-sm w-100" onclick="askQuickQuestion('list all transfers')">
+                            <button class="btn btn-outline-primary btn-sm w-100"
+                                onclick="askQuickQuestion('list all transfers')">
                                 <i class="bi bi-list-ul"></i> All Transfers
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-info btn-sm w-100" onclick="askQuickQuestion('recent transfers')">
+                            <button class="btn btn-outline-info btn-sm w-100"
+                                onclick="askQuickQuestion('recent transfers')">
                                 <i class="bi bi-clock"></i> Recent
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-success btn-sm w-100" onclick="askQuickQuestion('transfers by department')">
+                            <button class="btn btn-outline-success btn-sm w-100"
+                                onclick="askQuickQuestion('transfers by department')">
                                 <i class="bi bi-building"></i> By Department
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-warning btn-sm w-100" onclick="askQuickQuestion('pending transfers')">
+                            <button class="btn btn-outline-warning btn-sm w-100"
+                                onclick="askQuickQuestion('pending transfers')">
                                 <i class="bi bi-hourglass-split"></i> Pending
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-secondary btn-sm w-100" onclick="askQuickQuestion('transfer routes')">
+                            <button class="btn btn-outline-secondary btn-sm w-100"
+                                onclick="askQuickQuestion('transfer routes')">
                                 <i class="bi bi-signpost"></i> Routes
                             </button>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <button class="btn btn-outline-primary btn-sm w-100" onclick="askQuickQuestion('comprehensive transfer analysis')">
+                            <button class="btn btn-outline-primary btn-sm w-100"
+                                onclick="askQuickQuestion('comprehensive transfer analysis')">
                                 <i class="bi bi-bar-chart"></i> Full Analysis
                             </button>
                         </div>
@@ -598,7 +670,8 @@
 
                 <!-- General Questions -->
                 <div class="mb-4">
-                    <div class="d-flex align-items-center mb-3" style="cursor: pointer;" onclick="toggleQuestionCategory('general')">
+                    <div class="d-flex align-items-center mb-3" style="cursor: pointer;"
+                        onclick="toggleQuestionCategory('general')">
                         <h6 class="mb-0 text-success">
                             <i class="bi bi-gear me-2"></i>📋 General Queries
                             <i class="bi bi-chevron-right ms-2" id="general-chevron"></i>
@@ -606,7 +679,8 @@
                     </div>
                     <div id="general-questions" class="row" style="display: none;">
                         <div class="col-md-6 mb-2">
-                            <button class="btn btn-outline-success btn-sm w-100" onclick="askQuickQuestion('complete database overview')">
+                            <button class="btn btn-outline-success btn-sm w-100"
+                                onclick="askQuickQuestion('complete database overview')">
                                 <i class="bi bi-database"></i> Database Overview
                             </button>
                         </div>
@@ -632,7 +706,8 @@
             </div>
             <div class="modal-body">
                 <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i> <strong>Enhanced AI Assistant</strong> - Now with comprehensive database access and administrative capabilities!
+                    <i class="bi bi-info-circle"></i> <strong>Enhanced AI Assistant</strong> - Now with comprehensive
+                    database access and administrative capabilities!
                 </div>
 
                 <h6>📊 Advanced Analytics Queries:</h6>
@@ -671,7 +746,8 @@
                     <div class="col-md-6">
                         <h6 class="text-danger small">Delete Operations:</h6>
                         <ul class="small">
-                            <li>"Delete medicine with ID M001" <span class="badge bg-warning text-dark">Requires Confirmation</span></li>
+                            <li>"Delete medicine with ID M001" <span class="badge bg-warning text-dark">Requires
+                                    Confirmation</span></li>
                         </ul>
 
                         <h6 class="text-info small">Transfer Operations:</h6>
@@ -703,15 +779,16 @@
                 </div>
 
                 <div class="alert alert-warning mt-3">
-                    <i class="bi bi-shield-exclamation"></i> <strong>Security Note:</strong> Destructive operations (like deletions) require confirmation for safety.
+                    <i class="bi bi-shield-exclamation"></i> <strong>Security Note:</strong> Destructive operations
+                    (like deletions) require confirmation for safety.
                 </div>
             </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         </div>
     </div>
+</div>
 </div>
 
 <!-- Configuration Modal -->
@@ -730,7 +807,9 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="provider" id="providerOpenAI" value="openai" {% if config.provider == 'openai' %}checked{% endif %} onchange="updateProviderVisibility()">
+                                    <input class="form-check-input" type="radio" name="provider" id="providerOpenAI"
+                                        value="openai" {% if config.provider=='openai' %}checked{% endif %}
+                                        onchange="updateProviderVisibility()">
                                     <label class="form-check-label" for="providerOpenAI">
                                         <strong>OpenAI</strong><br>
                                         <small class="text-muted">GPT-4, GPT-4o models</small>
@@ -739,7 +818,9 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="provider" id="providerOpenRouter" value="openrouter" {% if config.provider == 'openrouter' %}checked{% endif %} onchange="updateProviderVisibility()">
+                                    <input class="form-check-input" type="radio" name="provider" id="providerOpenRouter"
+                                        value="openrouter" {% if config.provider=='openrouter' %}checked{% endif %}
+                                        onchange="updateProviderVisibility()">
                                     <label class="form-check-label" for="providerOpenRouter">
                                         <strong>OpenRouter</strong><br>
                                         <small class="text-muted">DeepSeek R1, Llama models</small>
@@ -748,7 +829,9 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="provider" id="providerGoogle" value="google" {% if config.provider == 'google' %}checked{% endif %} onchange="updateProviderVisibility()">
+                                    <input class="form-check-input" type="radio" name="provider" id="providerGoogle"
+                                        value="google" {% if config.provider=='google' %}checked{% endif %}
+                                        onchange="updateProviderVisibility()">
                                     <label class="form-check-label" for="providerGoogle">
                                         <strong>Google</strong><br>
                                         <small class="text-muted">Gemini 2.5 Pro models</small>
@@ -765,34 +848,43 @@
                             <label for="openaiApiKey" class="form-label">OpenAI API Key</label>
                             <div class="input-group">
                                 <input type="password" class="form-control" id="openaiApiKey" name="openai_api_key"
-                                       value="{{ config.openai_api_key }}" placeholder="sk-...">
-                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('openaiApiKey')">
+                                    value="{{ config.openai_api_key }}" placeholder="sk-...">
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onclick="togglePassword('openaiApiKey')">
                                     <i class="bi bi-eye"></i>
                                 </button>
                             </div>
-                            <small class="text-muted">Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a></small>
+                            <small class="text-muted">Get your API key from <a
+                                    href="https://platform.openai.com/api-keys" target="_blank">OpenAI
+                                    Platform</a></small>
                         </div>
                         <div class="mb-3" id="openrouterConfig">
                             <label for="openrouterApiKey" class="form-label">OpenRouter API Key</label>
                             <div class="input-group">
-                                <input type="password" class="form-control" id="openrouterApiKey" name="openrouter_api_key"
-                                       value="{{ config.openrouter_api_key }}" placeholder="sk-or-...">
-                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('openrouterApiKey')">
+                                <input type="password" class="form-control" id="openrouterApiKey"
+                                    name="openrouter_api_key" value="{{ config.openrouter_api_key }}"
+                                    placeholder="sk-or-...">
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onclick="togglePassword('openrouterApiKey')">
                                     <i class="bi bi-eye"></i>
                                 </button>
                             </div>
-                            <small class="text-muted">Get your API key from <a href="https://openrouter.ai/keys" target="_blank">OpenRouter</a> (Free tier available)</small>
+                            <small class="text-muted">Get your API key from <a href="https://openrouter.ai/keys"
+                                    target="_blank">OpenRouter</a> (Free tier available)</small>
                         </div>
                         <div class="mb-3" id="googleConfig">
                             <label for="googleApiKey" class="form-label">Google API Key</label>
                             <div class="input-group">
                                 <input type="password" class="form-control" id="googleApiKey" name="google_api_key"
-                                       value="{{ config.google_api_key }}" placeholder="AIza...">
-                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('googleApiKey')">
+                                    value="{{ config.google_api_key }}" placeholder="AIza...">
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onclick="togglePassword('googleApiKey')">
                                     <i class="bi bi-eye"></i>
                                 </button>
                             </div>
-                            <small class="text-muted">Get your API key from <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a></small>
+                            <small class="text-muted">Get your API key from <a
+                                    href="https://aistudio.google.com/app/apikey" target="_blank">Google AI
+                                    Studio</a></small>
                         </div>
                     </div>
 
@@ -803,40 +895,69 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="model" class="form-label">Model</label>
+                                    <!-- Static models for OpenAI/Google -->
                                     <select class="form-select" id="model" name="model">
                                         <!-- OpenAI Models -->
-                                        <optgroup label="OpenAI Models">
-                                            <option value="gpt-4" {% if config.model == 'gpt-4' %}selected{% endif %}>GPT-4 (Legacy)</option>
-                                            <option value="gpt-4o" {% if config.model == 'gpt-4o' %}selected{% endif %}>ChatGPT-4.0 (GPT-4 Omni)</option>
-                                            <option value="gpt-4-turbo" {% if config.model == 'gpt-4-turbo' %}selected{% endif %}>ChatGPT-4.1 (GPT-4 Turbo)</option>
-                                            <option value="gpt-3.5-turbo" {% if config.model == 'gpt-3.5-turbo' %}selected{% endif %}>GPT-3.5 Turbo</option>
+                                        <optgroup label="OpenAI Models" id="openaiModelsGroup">
+                                            <option value="gpt-4" {% if config.model=='gpt-4' %}selected{% endif %}>
+                                                GPT-4 (Legacy)</option>
+                                            <option value="gpt-4o" {% if config.model=='gpt-4o' %}selected{% endif %}>
+                                                ChatGPT-4.0 (GPT-4 Omni)</option>
+                                            <option value="gpt-4-turbo" {% if config.model=='gpt-4-turbo' %}selected{%
+                                                endif %}>ChatGPT-4.1 (GPT-4 Turbo)</option>
+                                            <option value="gpt-3.5-turbo" {% if config.model=='gpt-3.5-turbo'
+                                                %}selected{% endif %}>GPT-3.5 Turbo</option>
                                         </optgroup>
-                                        <!-- OpenRouter Models -->
-                                        <optgroup label="OpenRouter Models">
-                                            <option value="deepseek/deepseek-r1:nitro" {% if config.model == 'deepseek/deepseek-r1:nitro' %}selected{% endif %}>DeepSeek R1 (0528 model)</option>
-                                            <option value="meta-llama/llama-3.2-3b-instruct:free" {% if config.model == 'meta-llama/llama-3.2-3b-instruct:free' %}selected{% endif %}>Llama 3.2 3B (Free)</option>
+                                        <!-- OpenRouter Models - Will be populated dynamically -->
+                                        <optgroup label="OpenRouter Models (Click 'Fetch Models' to load 300+)"
+                                            id="openrouterModelsGroup">
+                                            <option value="deepseek/deepseek-r1:nitro" {% if
+                                                config.model=='deepseek/deepseek-r1:nitro' %}selected{% endif %}>
+                                                DeepSeek R1 (Default)</option>
+                                            <option value="meta-llama/llama-3.2-3b-instruct:free" {% if
+                                                config.model=='meta-llama/llama-3.2-3b-instruct:free' %}selected{% endif
+                                                %}>Llama 3.2 3B (Free)</option>
                                         </optgroup>
                                         <!-- Google Models -->
-                                        <optgroup label="Google Models">
-                                            <option value="gemini-2.5-pro" {% if config.model == 'gemini-2.5-pro' %}selected{% endif %}>Gemini 2.5 Pro (Latest)</option>
-                                            <option value="gemini-1.5-pro" {% if config.model == 'gemini-1.5-pro' %}selected{% endif %}>Gemini 1.5 Pro</option>
+                                        <optgroup label="Google Models" id="googleModelsGroup">
+                                            <option value="gemini-2.5-pro" {% if config.model=='gemini-2.5-pro'
+                                                %}selected{% endif %}>Gemini 2.5 Pro (Latest)</option>
+                                            <option value="gemini-1.5-pro" {% if config.model=='gemini-1.5-pro'
+                                                %}selected{% endif %}>Gemini 1.5 Pro</option>
                                         </optgroup>
                                     </select>
+                                </div>
+                                <!-- OpenRouter Model Search & Fetch -->
+                                <div class="mb-3" id="openrouterModelSearch" style="display: none;">
+                                    <div class="d-flex gap-2 mb-2">
+                                        <button type="button" class="btn btn-outline-primary btn-sm flex-grow-1"
+                                            onclick="fetchOpenRouterModels()" id="fetchModelsBtn">
+                                            <i class="bi bi-cloud-download"></i> Fetch 300+ Models
+                                        </button>
+                                        <span class="badge bg-secondary align-self-center" id="modelCountBadge">0
+                                            models</span>
+                                    </div>
+                                    <input type="text" class="form-control form-control-sm" id="modelSearchInput"
+                                        placeholder="Search models (e.g., gpt, claude, llama, deepseek)..."
+                                        oninput="filterOpenRouterModels()">
+                                    <small class="text-muted">Search by name, provider, or 'free' for free
+                                        models</small>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="maxTokens" class="form-label">Max Tokens</label>
                                     <input type="number" class="form-control" id="maxTokens" name="max_tokens"
-                                           value="{{ config.max_tokens }}" min="100" max="4000">
+                                        value="{{ config.max_tokens }}" min="100" max="4000">
                                 </div>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="temperature" class="form-label">Temperature (Creativity): <span id="tempValue">{{ config.temperature }}</span></label>
-                            <input type="range" class="form-range" id="temperature" name="temperature"
-                                   min="0" max="1" step="0.1" value="{{ config.temperature }}"
-                                   oninput="document.getElementById('tempValue').textContent = this.value">
+                            <label for="temperature" class="form-label">Temperature (Creativity): <span
+                                    id="tempValue">{{ config.temperature }}</span></label>
+                            <input type="range" class="form-range" id="temperature" name="temperature" min="0" max="1"
+                                step="0.1" value="{{ config.temperature }}"
+                                oninput="document.getElementById('tempValue').textContent = this.value">
                             <div class="d-flex justify-content-between">
                                 <small class="text-muted">Focused (0.0)</small>
                                 <small class="text-muted">Creative (1.0)</small>
@@ -848,13 +969,15 @@
                     <div class="mb-3">
                         <h6 class="text-info">Response Mode</h6>
                         <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="enabled" name="enabled" {% if config.enabled %}checked{% endif %}>
+                            <input class="form-check-input" type="checkbox" id="enabled" name="enabled" {% if
+                                config.enabled %}checked{% endif %}>
                             <label class="form-check-label" for="enabled">
                                 <strong>Enable LLM Integration</strong>
                             </label>
                         </div>
                         <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="forceLlm" name="force_llm" {% if config.force_llm %}checked{% endif %}>
+                            <input class="form-check-input" type="checkbox" id="forceLlm" name="force_llm" {% if
+                                config.force_llm %}checked{% endif %}>
                             <label class="form-check-label" for="forceLlm">
                                 <strong>Force LLM Responses</strong>
                             </label>
@@ -883,219 +1006,219 @@
 
 {% block extra_js %}
 <script>
-let chatHistory = [];
-let currentSessionId = '{{ current_session_id }}';
+    let chatHistory = [];
+    let currentSessionId = '{{ current_session_id }}';
 
-// Session Management Functions
-function toggleChatHistory() {
-    const sidebar = new bootstrap.Offcanvas(document.getElementById('chatHistorySidebar'));
-    sidebar.show();
-}
-
-async function newChatSession() {
-    try {
-        const response = await fetch('/chatbot/sessions/new', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({})
-        });
-
-        const result = await response.json();
-        if (result.success) {
-            currentSessionId = result.session_id;
-            // Clear current chat and reload page to show new session
-            location.reload();
-        } else {
-            alert('Error creating new session: ' + result.message);
-        }
-    } catch (error) {
-        console.error('Error creating new session:', error);
-        alert('Error creating new session');
+    // Session Management Functions
+    function toggleChatHistory() {
+        const sidebar = new bootstrap.Offcanvas(document.getElementById('chatHistorySidebar'));
+        sidebar.show();
     }
-}
 
-async function switchToSession(sessionId) {
-    try {
-        const response = await fetch(`/chatbot/sessions/${sessionId}/switch`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+    async function newChatSession() {
+        try {
+            const response = await fetch('/chatbot/sessions/new', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                currentSessionId = result.session_id;
+                // Clear current chat and reload page to show new session
+                location.reload();
+            } else {
+                alert('Error creating new session: ' + result.message);
             }
-        });
-
-        const result = await response.json();
-        if (result.success) {
-            currentSessionId = sessionId;
-            // Reload page to show selected session
-            location.reload();
-        } else {
-            alert('Error switching session: ' + result.message);
+        } catch (error) {
+            console.error('Error creating new session:', error);
+            alert('Error creating new session');
         }
-    } catch (error) {
-        console.error('Error switching session:', error);
-        alert('Error switching session');
-    }
-}
-
-async function deleteSession(sessionId) {
-    if (!confirm('Are you sure you want to delete this chat session? This action cannot be undone.')) {
-        return;
     }
 
-    try {
-        const response = await fetch(`/chatbot/sessions/${sessionId}/delete`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
+    async function switchToSession(sessionId) {
+        try {
+            const response = await fetch(`/chatbot/sessions/${sessionId}/switch`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                currentSessionId = sessionId;
+                // Reload page to show selected session
+                location.reload();
+            } else {
+                alert('Error switching session: ' + result.message);
             }
-        });
-
-        const result = await response.json();
-        if (result.success) {
-            // Reload page to reflect changes
-            location.reload();
-        } else {
-            alert('Error deleting session: ' + result.message);
+        } catch (error) {
+            console.error('Error switching session:', error);
+            alert('Error switching session');
         }
-    } catch (error) {
-        console.error('Error deleting session:', error);
-        alert('Error deleting session');
-    }
-}
-
-async function renameSession(sessionId) {
-    const newTitle = prompt('Enter new title for this chat session:');
-    if (!newTitle || newTitle.trim() === '') {
-        return;
     }
 
-    try {
-        const response = await fetch(`/chatbot/sessions/${sessionId}/rename`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ title: newTitle.trim() })
-        });
+    async function deleteSession(sessionId) {
+        if (!confirm('Are you sure you want to delete this chat session? This action cannot be undone.')) {
+            return;
+        }
 
-        const result = await response.json();
-        if (result.success) {
-            // Update the session title in the sidebar
-            const sessionCard = document.querySelector(`[data-session-id="${sessionId}"] .card-title`);
-            if (sessionCard) {
-                sessionCard.textContent = newTitle.trim();
+        try {
+            const response = await fetch(`/chatbot/sessions/${sessionId}/delete`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                // Reload page to reflect changes
+                location.reload();
+            } else {
+                alert('Error deleting session: ' + result.message);
             }
-        } else {
-            alert('Error renaming session: ' + result.message);
+        } catch (error) {
+            console.error('Error deleting session:', error);
+            alert('Error deleting session');
         }
-    } catch (error) {
-        console.error('Error renaming session:', error);
-        alert('Error renaming session');
     }
-}
 
-// Send message function - Enhanced with confirmation handling
-async function sendMessage(event) {
-    event.preventDefault();
+    async function renameSession(sessionId) {
+        const newTitle = prompt('Enter new title for this chat session:');
+        if (!newTitle || newTitle.trim() === '') {
+            return;
+        }
 
-    const messageInput = document.getElementById('messageInput');
-    const message = messageInput.value.trim();
+        try {
+            const response = await fetch(`/chatbot/sessions/${sessionId}/rename`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ title: newTitle.trim() })
+            });
 
-    if (!message) return;
+            const result = await response.json();
+            if (result.success) {
+                // Update the session title in the sidebar
+                const sessionCard = document.querySelector(`[data-session-id="${sessionId}"] .card-title`);
+                if (sessionCard) {
+                    sessionCard.textContent = newTitle.trim();
+                }
+            } else {
+                alert('Error renaming session: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error renaming session:', error);
+            alert('Error renaming session');
+        }
+    }
 
-    // Add user message to chat
-    addMessageToChat('user', message);
-    messageInput.value = '';
+    // Send message function - Enhanced with confirmation handling
+    async function sendMessage(event) {
+        event.preventDefault();
 
-    // Show typing indicator
-    showTypingIndicator();
+        const messageInput = document.getElementById('messageInput');
+        const message = messageInput.value.trim();
 
-    try {
-        // Check if this is a confirmation message
-        const isConfirmation = message.toUpperCase().startsWith('CONFIRM');
-        const endpoint = isConfirmation ? '/chatbot/confirm' : '/chatbot/query';
-        const bodyKey = isConfirmation ? 'confirmation' : 'query';
+        if (!message) return;
 
-        // Send to backend
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ [bodyKey]: message }),
-            credentials: 'same-origin' // Ensure cookies are sent
-        });
+        // Add user message to chat
+        addMessageToChat('user', message);
+        messageInput.value = '';
 
-        // Check if response is ok
-        if (!response.ok) {
+        // Show typing indicator
+        showTypingIndicator();
+
+        try {
+            // Check if this is a confirmation message
+            const isConfirmation = message.toUpperCase().startsWith('CONFIRM');
+            const endpoint = isConfirmation ? '/chatbot/confirm' : '/chatbot/query';
+            const bodyKey = isConfirmation ? 'confirmation' : 'query';
+
+            // Send to backend
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ [bodyKey]: message }),
+                credentials: 'same-origin' // Ensure cookies are sent
+            });
+
+            // Check if response is ok
+            if (!response.ok) {
+                removeTypingIndicator();
+                if (response.status === 401 || response.status === 403) {
+                    addMessageToChat('ai', '🔒 Your session has expired. Please refresh the page and log in again to continue.');
+                    return;
+                }
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+
+            // Remove typing indicator
             removeTypingIndicator();
-            if (response.status === 401 || response.status === 403) {
-                addMessageToChat('ai', '🔒 Your session has expired. Please refresh the page and log in again to continue.');
-                return;
+
+            // Handle different response types
+            if (data.requires_confirmation) {
+                // Add confirmation response with special styling
+                addConfirmationMessage(data.response, data.confirmation_data);
+            } else if (data.agent_handled || data.llm_handled || data.enhanced_fallback) {
+                // Add enhanced AI response with source indicator
+                addEnhancedMessage(data.response, data);
+
+                // Add source indicator
+                const sourceIndicator = data.llm_handled ?
+                    '🤖 <small class="text-muted">Response from ' + (data.provider || 'AI Model') + '</small>' :
+                    data.agent_handled ?
+                        '🏥 <small class="text-muted">Response from Enhanced Pharmacy Agent</small>' :
+                        '💡 <small class="text-muted">Enhanced Fallback Response</small>';
+
+                // Add source indicator to the last message
+                const lastMessage = document.querySelector('.chat-messages .message:last-child .message-content');
+                if (lastMessage) {
+                    lastMessage.innerHTML += '<br>' + sourceIndicator;
+                }
+            } else {
+                // Add regular AI response
+                addMessageToChat('ai', data.response || 'Sorry, I encountered an error processing your request.');
             }
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
 
-        const data = await response.json();
+        } catch (error) {
+            removeTypingIndicator();
+            console.error('Chat error:', error);
 
-        // Remove typing indicator
-        removeTypingIndicator();
-
-        // Handle different response types
-        if (data.requires_confirmation) {
-            // Add confirmation response with special styling
-            addConfirmationMessage(data.response, data.confirmation_data);
-        } else if (data.agent_handled || data.llm_handled || data.enhanced_fallback) {
-            // Add enhanced AI response with source indicator
-            addEnhancedMessage(data.response, data);
-
-            // Add source indicator
-            const sourceIndicator = data.llm_handled ?
-                '🤖 <small class="text-muted">Response from ' + (data.provider || 'AI Model') + '</small>' :
-                data.agent_handled ?
-                '🏥 <small class="text-muted">Response from Enhanced Pharmacy Agent</small>' :
-                '💡 <small class="text-muted">Enhanced Fallback Response</small>';
-
-            // Add source indicator to the last message
-            const lastMessage = document.querySelector('.chat-messages .message:last-child .message-content');
-            if (lastMessage) {
-                lastMessage.innerHTML += '<br>' + sourceIndicator;
+            if (error.message.includes('Failed to fetch')) {
+                addMessageToChat('ai', '🌐 Connection failed. Please check your internet connection and try again. If the problem persists, refresh the page.');
+            } else {
+                addMessageToChat('ai', '⚠️ I encountered an error processing your request. Please try again or refresh the page if the problem continues.');
             }
-        } else {
-            // Add regular AI response
-            addMessageToChat('ai', data.response || 'Sorry, I encountered an error processing your request.');
-        }
-
-    } catch (error) {
-        removeTypingIndicator();
-        console.error('Chat error:', error);
-
-        if (error.message.includes('Failed to fetch')) {
-            addMessageToChat('ai', '🌐 Connection failed. Please check your internet connection and try again. If the problem persists, refresh the page.');
-        } else {
-            addMessageToChat('ai', '⚠️ I encountered an error processing your request. Please try again or refresh the page if the problem continues.');
         }
     }
-}
 
-// Add enhanced message with special formatting
-function addEnhancedMessage(message, data) {
-    const chatMessages = document.getElementById('chatMessages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message ai-message enhanced';
+    // Add enhanced message with special formatting
+    function addEnhancedMessage(message, data) {
+        const chatMessages = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ai-message enhanced';
 
-    let statusBadge = '';
-    if (data.agent_handled) {
-        statusBadge = '<span class="badge bg-success me-2"><i class="bi bi-robot"></i> AI Agent</span>';
-    } else if (data.llm_handled) {
-        statusBadge = '<span class="badge bg-primary me-2"><i class="bi bi-brain"></i> LLM</span>';
-    } else if (data.enhanced_fallback) {
-        statusBadge = '<span class="badge bg-info me-2"><i class="bi bi-gear"></i> Enhanced</span>';
-    }
+        let statusBadge = '';
+        if (data.agent_handled) {
+            statusBadge = '<span class="badge bg-success me-2"><i class="bi bi-robot"></i> AI Agent</span>';
+        } else if (data.llm_handled) {
+            statusBadge = '<span class="badge bg-primary me-2"><i class="bi bi-brain"></i> LLM</span>';
+        } else if (data.enhanced_fallback) {
+            statusBadge = '<span class="badge bg-info me-2"><i class="bi bi-gear"></i> Enhanced</span>';
+        }
 
-    messageDiv.innerHTML = `
+        messageDiv.innerHTML = `
         <div class="d-flex align-items-start mb-3">
             <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
                 <i class="bi bi-robot"></i>
@@ -1110,20 +1233,20 @@ function addEnhancedMessage(message, data) {
         </div>
     `;
 
-    chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    // Store in history
-    chatHistory.push({ sender: 'ai', message, timestamp: new Date(), enhanced: true, data });
-}
+        // Store in history
+        chatHistory.push({ sender: 'ai', message, timestamp: new Date(), enhanced: true, data });
+    }
 
-// Add confirmation message with special styling
-function addConfirmationMessage(message, confirmationData) {
-    const chatMessages = document.getElementById('chatMessages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message ai-message confirmation';
+    // Add confirmation message with special styling
+    function addConfirmationMessage(message, confirmationData) {
+        const chatMessages = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ai-message confirmation';
 
-    messageDiv.innerHTML = `
+        messageDiv.innerHTML = `
         <div class="d-flex align-items-start mb-3">
             <div class="avatar bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
                 <i class="bi bi-exclamation-triangle"></i>
@@ -1140,43 +1263,43 @@ function addConfirmationMessage(message, confirmationData) {
         </div>
     `;
 
-    chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    // Store in history
-    chatHistory.push({ sender: 'ai', message, timestamp: new Date(), confirmation: true, confirmationData });
-}
+        // Store in history
+        chatHistory.push({ sender: 'ai', message, timestamp: new Date(), confirmation: true, confirmationData });
+    }
 
-// Format message with markdown-like styling
-function formatMessage(message) {
-    return message
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // Bold
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')              // Italic
-        .replace(/`(.*?)`/g, '<code>$1</code>')            // Code
-        .replace(/\n/g, '<br>')                            // Line breaks
-        .replace(/•/g, '&bull;')                           // Bullet points
-        .replace(/✅/g, '<span class="text-success">✅</span>')  // Success checkmarks
-        .replace(/⚠️/g, '<span class="text-warning">⚠️</span>')  // Warning signs
-        .replace(/🔄/g, '<span class="text-info">🔄</span>')     // Transfer icons
-        .replace(/📊/g, '<span class="text-primary">📊</span>')  // Chart icons
-        .replace(/🔧/g, '<span class="text-secondary">🔧</span>') // Tool icons
-        .replace(/🔍/g, '<span class="text-info">🔍</span>')     // Search icons
-        .replace(/🤖/g, '<span class="text-primary">🤖</span>'); // Robot icons
-}
+    // Format message with markdown-like styling
+    function formatMessage(message) {
+        return message
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // Bold
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')              // Italic
+            .replace(/`(.*?)`/g, '<code>$1</code>')            // Code
+            .replace(/\n/g, '<br>')                            // Line breaks
+            .replace(/•/g, '&bull;')                           // Bullet points
+            .replace(/✅/g, '<span class="text-success">✅</span>')  // Success checkmarks
+            .replace(/⚠️/g, '<span class="text-warning">⚠️</span>')  // Warning signs
+            .replace(/🔄/g, '<span class="text-info">🔄</span>')     // Transfer icons
+            .replace(/📊/g, '<span class="text-primary">📊</span>')  // Chart icons
+            .replace(/🔧/g, '<span class="text-secondary">🔧</span>') // Tool icons
+            .replace(/🔍/g, '<span class="text-info">🔍</span>')     // Search icons
+            .replace(/🤖/g, '<span class="text-primary">🤖</span>'); // Robot icons
+    }
 
-// Add message to chat
-function addMessageToChat(sender, message) {
-    const chatMessages = document.getElementById('chatMessages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${sender}-message`;
-    
-    const isUser = sender === 'user';
-    const avatarIcon = isUser ? 'bi-person' : 'bi-robot';
-    const avatarBg = isUser ? 'bg-secondary' : 'bg-primary';
-    const messageBg = isUser ? 'bg-primary text-white' : 'bg-light';
-    const alignment = isUser ? 'justify-content-end' : '';
-    
-    messageDiv.innerHTML = `
+    // Add message to chat
+    function addMessageToChat(sender, message) {
+        const chatMessages = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}-message`;
+
+        const isUser = sender === 'user';
+        const avatarIcon = isUser ? 'bi-person' : 'bi-robot';
+        const avatarBg = isUser ? 'bg-secondary' : 'bg-primary';
+        const messageBg = isUser ? 'bg-primary text-white' : 'bg-light';
+        const alignment = isUser ? 'justify-content-end' : '';
+
+        messageDiv.innerHTML = `
         <div class="d-flex align-items-start mb-3 ${alignment}">
             ${!isUser ? `
             <div class="avatar ${avatarBg} text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
@@ -1196,21 +1319,21 @@ function addMessageToChat(sender, message) {
             ` : ''}
         </div>
     `;
-    
-    chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    
-    // Store in history
-    chatHistory.push({ sender, message, timestamp: new Date() });
-}
 
-// Show typing indicator
-function showTypingIndicator() {
-    const chatMessages = document.getElementById('chatMessages');
-    const typingDiv = document.createElement('div');
-    typingDiv.id = 'typingIndicator';
-    typingDiv.className = 'message ai-message';
-    typingDiv.innerHTML = `
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Store in history
+        chatHistory.push({ sender, message, timestamp: new Date() });
+    }
+
+    // Show typing indicator
+    function showTypingIndicator() {
+        const chatMessages = document.getElementById('chatMessages');
+        const typingDiv = document.createElement('div');
+        typingDiv.id = 'typingIndicator';
+        typingDiv.className = 'message ai-message';
+        typingDiv.innerHTML = `
         <div class="d-flex align-items-start mb-3">
             <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
                 <i class="bi bi-robot"></i>
@@ -1226,65 +1349,65 @@ function showTypingIndicator() {
             </div>
         </div>
     `;
-    
-    chatMessages.appendChild(typingDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
 
-// Remove typing indicator
-function removeTypingIndicator() {
-    const typingIndicator = document.getElementById('typingIndicator');
-    if (typingIndicator) {
-        typingIndicator.remove();
+        chatMessages.appendChild(typingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
-}
 
-// Quick question function
-function askQuickQuestion(question) {
-    document.getElementById('messageInput').value = question;
-    document.getElementById('chatForm').dispatchEvent(new Event('submit'));
-}
-
-// Toggle question category visibility
-function toggleQuestionCategory(category) {
-    const questionsDiv = document.getElementById(category + '-questions');
-    const chevron = document.getElementById(category + '-chevron');
-
-    if (questionsDiv.style.display === 'none' || questionsDiv.style.display === '') {
-        questionsDiv.style.display = 'block';
-        chevron.className = 'bi bi-chevron-down ms-2';
-    } else {
-        questionsDiv.style.display = 'none';
-        chevron.className = 'bi bi-chevron-right ms-2';
+    // Remove typing indicator
+    function removeTypingIndicator() {
+        const typingIndicator = document.getElementById('typingIndicator');
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
     }
-}
 
-// Show all question categories
-function showAllQuestions() {
-    const categories = ['medicines', 'patients', 'suppliers', 'departments', 'stores', 'purchases', 'consumption', 'transfers', 'general'];
-    categories.forEach(category => {
+    // Quick question function
+    function askQuickQuestion(question) {
+        document.getElementById('messageInput').value = question;
+        document.getElementById('chatForm').dispatchEvent(new Event('submit'));
+    }
+
+    // Toggle question category visibility
+    function toggleQuestionCategory(category) {
         const questionsDiv = document.getElementById(category + '-questions');
         const chevron = document.getElementById(category + '-chevron');
-        questionsDiv.style.display = 'block';
-        chevron.className = 'bi bi-chevron-down ms-2';
-    });
-}
 
-// Collapse all question categories
-function collapseAllQuestions() {
-    const categories = ['medicines', 'patients', 'suppliers', 'departments', 'stores', 'purchases', 'consumption', 'transfers', 'general'];
-    categories.forEach(category => {
-        const questionsDiv = document.getElementById(category + '-questions');
-        const chevron = document.getElementById(category + '-chevron');
-        questionsDiv.style.display = 'none';
-        chevron.className = 'bi bi-chevron-right ms-2';
-    });
-}
+        if (questionsDiv.style.display === 'none' || questionsDiv.style.display === '') {
+            questionsDiv.style.display = 'block';
+            chevron.className = 'bi bi-chevron-down ms-2';
+        } else {
+            questionsDiv.style.display = 'none';
+            chevron.className = 'bi bi-chevron-right ms-2';
+        }
+    }
 
-// Clear chat function
-function clearChat() {
-    if (confirm('Are you sure you want to clear the chat history?')) {
-        document.getElementById('chatMessages').innerHTML = `
+    // Show all question categories
+    function showAllQuestions() {
+        const categories = ['medicines', 'patients', 'suppliers', 'departments', 'stores', 'purchases', 'consumption', 'transfers', 'general'];
+        categories.forEach(category => {
+            const questionsDiv = document.getElementById(category + '-questions');
+            const chevron = document.getElementById(category + '-chevron');
+            questionsDiv.style.display = 'block';
+            chevron.className = 'bi bi-chevron-down ms-2';
+        });
+    }
+
+    // Collapse all question categories
+    function collapseAllQuestions() {
+        const categories = ['medicines', 'patients', 'suppliers', 'departments', 'stores', 'purchases', 'consumption', 'transfers', 'general'];
+        categories.forEach(category => {
+            const questionsDiv = document.getElementById(category + '-questions');
+            const chevron = document.getElementById(category + '-chevron');
+            questionsDiv.style.display = 'none';
+            chevron.className = 'bi bi-chevron-right ms-2';
+        });
+    }
+
+    // Clear chat function
+    function clearChat() {
+        if (confirm('Are you sure you want to clear the chat history?')) {
+            document.getElementById('chatMessages').innerHTML = `
             <div class="message ai-message">
                 <div class="d-flex align-items-start mb-3">
                     <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
@@ -1299,243 +1422,386 @@ function clearChat() {
                 </div>
             </div>
         `;
-        chatHistory = [];
+            chatHistory = [];
+        }
     }
-}
 
-// Show help modal
-function showHelp() {
-    new bootstrap.Modal(document.getElementById('helpModal')).show();
-}
-
-// Show configuration modal
-function showConfig() {
-    new bootstrap.Modal(document.getElementById('configModal')).show();
-    updateProviderVisibility();
-}
-
-// Update provider-specific configuration visibility
-function updateProviderVisibility() {
-    const provider = document.querySelector('input[name="provider"]:checked').value;
-    const openaiConfig = document.getElementById('openaiConfig');
-    const openrouterConfig = document.getElementById('openrouterConfig');
-    const googleConfig = document.getElementById('googleConfig');
-
-    // Hide all configs first
-    openaiConfig.style.display = 'none';
-    openrouterConfig.style.display = 'none';
-    googleConfig.style.display = 'none';
-
-    // Show the selected provider's config
-    if (provider === 'openai') {
-        openaiConfig.style.display = 'block';
-    } else if (provider === 'openrouter') {
-        openrouterConfig.style.display = 'block';
-    } else if (provider === 'google') {
-        googleConfig.style.display = 'block';
+    // Show help modal
+    function showHelp() {
+        new bootstrap.Modal(document.getElementById('helpModal')).show();
     }
-}
 
-// Toggle password visibility
-function togglePassword(fieldId) {
-    const field = document.getElementById(fieldId);
-    const icon = field.nextElementSibling.querySelector('i');
-
-    if (field.type === 'password') {
-        field.type = 'text';
-        icon.className = 'bi bi-eye-slash';
-    } else {
-        field.type = 'password';
-        icon.className = 'bi bi-eye';
+    // Show configuration modal
+    function showConfig() {
+        new bootstrap.Modal(document.getElementById('configModal')).show();
+        updateProviderVisibility();
     }
-}
 
-// Test API connection
-async function testConnection() {
-    const button = event.target;
-    const originalText = button.innerHTML;
-    button.innerHTML = '<i class="bi bi-hourglass-split"></i> Testing...';
-    button.disabled = true;
+    // Update provider-specific configuration visibility
+    function updateProviderVisibility() {
+        const provider = document.querySelector('input[name="provider"]:checked').value;
+        const openaiConfig = document.getElementById('openaiConfig');
+        const openrouterConfig = document.getElementById('openrouterConfig');
+        const googleConfig = document.getElementById('googleConfig');
+        const openrouterModelSearch = document.getElementById('openrouterModelSearch');
 
-    try {
-        const response = await fetch('/chatbot/test-connection', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+        // Hide all configs first
+        openaiConfig.style.display = 'none';
+        openrouterConfig.style.display = 'none';
+        googleConfig.style.display = 'none';
+        if (openrouterModelSearch) openrouterModelSearch.style.display = 'none';
+
+        // Show the selected provider's config
+        if (provider === 'openai') {
+            openaiConfig.style.display = 'block';
+        } else if (provider === 'openrouter') {
+            openrouterConfig.style.display = 'block';
+            if (openrouterModelSearch) openrouterModelSearch.style.display = 'block';
+        } else if (provider === 'google') {
+            googleConfig.style.display = 'block';
+        }
+    }
+
+    // Toggle password visibility
+    function togglePassword(fieldId) {
+        const field = document.getElementById(fieldId);
+        const icon = field.nextElementSibling.querySelector('i');
+
+        if (field.type === 'password') {
+            field.type = 'text';
+            icon.className = 'bi bi-eye-slash';
+        } else {
+            field.type = 'password';
+            icon.className = 'bi bi-eye';
+        }
+    }
+
+    // Test API connection
+    async function testConnection() {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="bi bi-hourglass-split"></i> Testing...';
+        button.disabled = true;
+
+        try {
+            const response = await fetch('/chatbot/test-connection', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showAlert('success', data.message);
+            } else {
+                showAlert('danger', data.message);
             }
-        });
 
-        const data = await response.json();
-
-        if (data.success) {
-            showAlert('success', data.message);
-        } else {
-            showAlert('danger', data.message);
+        } catch (error) {
+            showAlert('danger', 'Connection test failed: ' + error.message);
+        } finally {
+            button.innerHTML = originalText;
+            button.disabled = false;
         }
-
-    } catch (error) {
-        showAlert('danger', 'Connection test failed: ' + error.message);
-    } finally {
-        button.innerHTML = originalText;
-        button.disabled = false;
     }
-}
 
-// Save configuration
-async function saveConfig() {
-    const form = document.getElementById('configForm');
-    const formData = new FormData(form);
+    // Save configuration
+    async function saveConfig() {
+        const form = document.getElementById('configForm');
+        const formData = new FormData(form);
 
-    const button = event.target;
-    const originalText = button.innerHTML;
-    button.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
-    button.disabled = true;
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
+        button.disabled = true;
 
-    try {
-        const response = await fetch('/chatbot/config', {
-            method: 'POST',
-            body: formData,
-            credentials: 'same-origin' // Ensure cookies are sent
-        });
+        try {
+            const response = await fetch('/chatbot/config', {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin' // Ensure cookies are sent
+            });
 
-        // Check if response is ok
-        if (!response.ok) {
-            if (response.status === 401 || response.status === 403) {
-                showAlert('warning', 'Session expired. Please refresh the page and log in again.');
-                setTimeout(() => window.location.reload(), 2000);
-                return;
+            // Check if response is ok
+            if (!response.ok) {
+                if (response.status === 401 || response.status === 403) {
+                    showAlert('warning', 'Session expired. Please refresh the page and log in again.');
+                    setTimeout(() => window.location.reload(), 2000);
+                    return;
+                }
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
 
-        const data = await response.json();
+            const data = await response.json();
 
-        if (data.success) {
-            showAlert('success', data.message);
-            // Update status badge
-            updateStatusBadge();
-            // Close modal
-            bootstrap.Modal.getInstance(document.getElementById('configModal')).hide();
-        } else {
-            showAlert('danger', data.message);
-        }
+            if (data.success) {
+                showAlert('success', data.message);
+                // Update status badge
+                updateStatusBadge();
+                // Close modal
+                bootstrap.Modal.getInstance(document.getElementById('configModal')).hide();
+            } else {
+                showAlert('danger', data.message);
+            }
 
-    } catch (error) {
-        console.error('Configuration save error:', error);
-        if (error.message.includes('Failed to fetch')) {
-            showAlert('danger', 'Connection failed. Please check your internet connection and try again. If the problem persists, refresh the page.');
-        } else {
-            showAlert('danger', 'Failed to save configuration: ' + error.message);
+        } catch (error) {
+            console.error('Configuration save error:', error);
+            if (error.message.includes('Failed to fetch')) {
+                showAlert('danger', 'Connection failed. Please check your internet connection and try again. If the problem persists, refresh the page.');
+            } else {
+                showAlert('danger', 'Failed to save configuration: ' + error.message);
+            }
+        } finally {
+            button.innerHTML = originalText;
+            button.disabled = false;
         }
-    } finally {
-        button.innerHTML = originalText;
-        button.disabled = false;
     }
-}
 
-// Update status badge
-async function updateStatusBadge() {
-    try {
-        const response = await fetch('/chatbot/config', {
-            credentials: 'same-origin'
-        });
+    // Update status badge
+    async function updateStatusBadge() {
+        try {
+            const response = await fetch('/chatbot/config', {
+                credentials: 'same-origin'
+            });
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const config = await response.json();
+
+            const statusBadge = document.getElementById('llmStatus');
+            if (config.enabled) {
+                statusBadge.className = 'badge bg-success';
+                statusBadge.innerHTML = `<i class="bi bi-check-circle"></i> Enabled (${config.provider.charAt(0).toUpperCase() + config.provider.slice(1)})`;
+                statusBadge.title = `Model: ${config.model || 'Unknown'}`;
+            } else {
+                statusBadge.className = 'badge bg-warning';
+                statusBadge.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Fallback Mode';
+                statusBadge.title = 'LLM integration is disabled - using enhanced local agent';
+            }
+        } catch (error) {
+            console.error('Failed to update status badge:', error);
+            const statusBadge = document.getElementById('llmStatus');
+            statusBadge.className = 'badge bg-danger';
+            statusBadge.innerHTML = '<i class="bi bi-wifi-off"></i> Connection Issue';
+            statusBadge.title = 'Unable to check LLM status - please refresh page';
         }
-
-        const config = await response.json();
-
-        const statusBadge = document.getElementById('llmStatus');
-        if (config.enabled) {
-            statusBadge.className = 'badge bg-success';
-            statusBadge.innerHTML = `<i class="bi bi-check-circle"></i> Enabled (${config.provider.charAt(0).toUpperCase() + config.provider.slice(1)})`;
-            statusBadge.title = `Model: ${config.model || 'Unknown'}`;
-        } else {
-            statusBadge.className = 'badge bg-warning';
-            statusBadge.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Fallback Mode';
-            statusBadge.title = 'LLM integration is disabled - using enhanced local agent';
-        }
-    } catch (error) {
-        console.error('Failed to update status badge:', error);
-        const statusBadge = document.getElementById('llmStatus');
-        statusBadge.className = 'badge bg-danger';
-        statusBadge.innerHTML = '<i class="bi bi-wifi-off"></i> Connection Issue';
-        statusBadge.title = 'Unable to check LLM status - please refresh page';
     }
-}
 
-// Show alert message
-function showAlert(type, message) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
-    alertDiv.innerHTML = `
+    // Show alert message
+    function showAlert(type, message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+        alertDiv.innerHTML = `
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
 
-    document.body.appendChild(alertDiv);
+        document.body.appendChild(alertDiv);
 
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.remove();
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+
+    // OpenRouter Models Storage
+    let openRouterModelsData = [];
+    let currentModelValue = '{{ config.model }}';
+
+    // Fetch OpenRouter models from API
+    async function fetchOpenRouterModels() {
+        const btn = document.getElementById('fetchModelsBtn');
+        const originalHtml = btn.innerHTML;
+
+        try {
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Loading...';
+            btn.disabled = true;
+
+            const response = await fetch('/chatbot/fetch-openrouter-models', {
+                credentials: 'same-origin'
+            });
+
+            if (!response.ok) throw new Error('Failed to fetch models');
+
+            const data = await response.json();
+
+            if (data.success && data.models) {
+                openRouterModelsData = data.models;
+                populateOpenRouterModels(data.models);
+                document.getElementById('modelCountBadge').textContent = `${data.count} models`;
+                document.getElementById('modelCountBadge').className = 'badge bg-success align-self-center';
+                showAlert('success', `Loaded ${data.count} OpenRouter models${data.cached ? ' (cached)' : ''}`);
+            } else {
+                showAlert('danger', data.message || 'Failed to load models');
+            }
+        } catch (error) {
+            console.error('Error fetching models:', error);
+            showAlert('danger', 'Failed to fetch OpenRouter models: ' + error.message);
+        } finally {
+            btn.innerHTML = '<i class="bi bi-cloud-download"></i> Refresh Models';
+            btn.disabled = false;
         }
-    }, 5000);
-}
+    }
 
-// Focus on input when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('messageInput').focus();
+    // Populate OpenRouter models dropdown
+    function populateOpenRouterModels(models) {
+        const select = document.getElementById('model');
+        const optgroup = document.getElementById('openrouterModelsGroup');
 
-    // Add event listeners for provider radio buttons
-    document.querySelectorAll('input[name="provider"]').forEach(radio => {
-        radio.addEventListener('change', updateProviderVisibility);
+        // Clear existing options in OpenRouter group
+        optgroup.innerHTML = '';
+        optgroup.label = `OpenRouter Models (${models.length})`;
+
+        // Group models by provider
+        const groupedModels = {};
+        models.forEach(model => {
+            if (!groupedModels[model.provider]) {
+                groupedModels[model.provider] = [];
+            }
+            groupedModels[model.provider].push(model);
+        });
+
+        // Remove old OpenRouter optgroups (except the main one)
+        document.querySelectorAll('[data-openrouter-provider]').forEach(el => el.remove());
+
+        // Create optgroups for each provider
+        const googleGroup = document.getElementById('googleModelsGroup');
+        const sortedProviders = Object.keys(groupedModels).sort();
+
+        sortedProviders.forEach(provider => {
+            const providerGroup = document.createElement('optgroup');
+            providerGroup.label = `${provider} (${groupedModels[provider].length})`;
+            providerGroup.setAttribute('data-openrouter-provider', provider);
+
+            groupedModels[provider].forEach(model => {
+                const option = document.createElement('option');
+                option.value = model.id;
+
+                // Build label with pricing
+                let label = model.name;
+                if (model.is_free) {
+                    label += ' ⭐ FREE';
+                } else if (model.prompt_price > 0) {
+                    label += ` ($${model.prompt_price.toFixed(2)}/1M)`;
+                }
+                if (model.context_length > 0) {
+                    label += ` [${Math.round(model.context_length / 1000)}K ctx]`;
+                }
+
+                option.textContent = label;
+                option.setAttribute('data-provider', model.provider);
+                option.setAttribute('data-free', model.is_free);
+                option.setAttribute('data-search', `${model.name} ${model.id} ${model.provider} ${model.is_free ? 'free' : ''}`.toLowerCase());
+
+                if (model.id === currentModelValue) {
+                    option.selected = true;
+                }
+
+                providerGroup.appendChild(option);
+            });
+
+            // Insert before Google group
+            select.insertBefore(providerGroup, googleGroup);
+        });
+
+        // Remove the placeholder optgroup
+        optgroup.remove();
+    }
+
+    // Filter OpenRouter models based on search input
+    function filterOpenRouterModels() {
+        const searchTerm = document.getElementById('modelSearchInput').value.toLowerCase().trim();
+        const select = document.getElementById('model');
+
+        // Get all OpenRouter optgroups
+        const openrouterGroups = document.querySelectorAll('[data-openrouter-provider]');
+
+        openrouterGroups.forEach(group => {
+            let visibleCount = 0;
+            const options = group.querySelectorAll('option');
+
+            options.forEach(option => {
+                const searchData = option.getAttribute('data-search') || option.textContent.toLowerCase();
+                const matches = searchTerm === '' || searchData.includes(searchTerm);
+                option.style.display = matches ? '' : 'none';
+                if (matches) visibleCount++;
+            });
+
+            // Hide empty groups
+            group.style.display = visibleCount > 0 ? '' : 'none';
+        });
+    }
+
+    // Focus on input when page loads
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('messageInput').focus();
+
+        // Add event listeners for provider radio buttons
+        document.querySelectorAll('input[name="provider"]').forEach(radio => {
+            radio.addEventListener('change', updateProviderVisibility);
+        });
+
+        // Auto-fetch OpenRouter models if provider is OpenRouter
+        const openrouterRadio = document.getElementById('providerOpenRouter');
+        if (openrouterRadio && openrouterRadio.checked) {
+            // Show search section
+            const searchSection = document.getElementById('openrouterModelSearch');
+            if (searchSection) searchSection.style.display = 'block';
+        }
     });
-});
 </script>
 
 <style>
-.typing-dots {
-    display: inline-block;
-}
-
-.typing-dots span {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: #999;
-    margin: 0 2px;
-    animation: typing 1.4s infinite ease-in-out;
-}
-
-.typing-dots span:nth-child(1) {
-    animation-delay: -0.32s;
-}
-
-.typing-dots span:nth-child(2) {
-    animation-delay: -0.16s;
-}
-
-@keyframes typing {
-    0%, 80%, 100% {
-        transform: scale(0);
-        opacity: 0.5;
+    .typing-dots {
+        display: inline-block;
     }
-    40% {
-        transform: scale(1);
-        opacity: 1;
+
+    .typing-dots span {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #999;
+        margin: 0 2px;
+        animation: typing 1.4s infinite ease-in-out;
     }
-}
 
-.message-content {
-    max-width: 80%;
-}
+    .typing-dots span:nth-child(1) {
+        animation-delay: -0.32s;
+    }
 
-#chatMessages {
-    scroll-behavior: smooth;
-}
+    .typing-dots span:nth-child(2) {
+        animation-delay: -0.16s;
+    }
+
+    @keyframes typing {
+
+        0%,
+        80%,
+        100% {
+            transform: scale(0);
+            opacity: 0.5;
+        }
+
+        40% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .message-content {
+        max-width: 80%;
+    }
+
+    #chatMessages {
+        scroll-behavior: smooth;
+    }
 </style>
 {% endblock %}
