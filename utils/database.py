@@ -125,7 +125,8 @@ def init_database():
         'purchases': [],
         'consumption': [],
         'history': [],
-        'transfers': []
+        'transfers': [],
+        'forms': []
     }
     
     # Create files if they don't exist
