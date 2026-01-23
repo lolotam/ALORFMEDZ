@@ -1,0 +1,12 @@
+<!-- Reusable Page Header Component -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        {% block page_icon %}<i class="bi bi-file-earmark"></i>{% endblock %}
+        {% block page_title %}Page Title{% endblock %}
+    </h1>
+    <div>
+        {% block page_actions %}
+        <!-- Default action buttons can be added here -->
+        {% endblock %}
+    </div>
+</div>

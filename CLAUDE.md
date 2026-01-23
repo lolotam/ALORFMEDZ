@@ -13,9 +13,21 @@ python app.py
 
 ### Testing
 ```bash
+# Run all tests with pytest
+pytest
+
 # Run specific test files
-python test_delete_functionality.py
-python test_store_department_relationship.py
+pytest tests/test_delete_functionality.py
+pytest tests/test_store_department_relationship.py
+
+# Run with coverage
+pytest --cov=app --cov-report=html
+
+# Run with verbose output
+pytest -v
+
+# Run only unit tests
+pytest -m unit
 
 # Note: Playwright tests may be available depending on test setup
 # Ensure Playwright is installed: pip install playwright && playwright install
@@ -32,8 +44,8 @@ docker run -p 5045:5045 alorfmdz
 ### Running Individual Tests
 ```bash
 # Run specific test files for functionality testing
-python test_delete_functionality.py
-python test_store_department_relationship.py
+pytest tests/test_delete_functionality.py
+pytest tests/test_store_department_relationship.py
 ```
 
 ## Project Overview
@@ -57,19 +69,46 @@ This is a **Flask-based Hospital Pharmacy Management System** for hospitals, pro
 The architecture follows these key patterns:
 
 ### Blueprint-Based Module Organization
-The application uses Flask blueprints for modular separation (`blueprints/` directory):
+The application uses Flask blueprints for modular separation (`app/blueprints/` directory):
 - **Available Modules**: auth, dashboard, medicines, patients, doctors, suppliers, departments, stores, purchases, consumption, reports, settings, chatbot, transfers, photos, api
 - Each module is a separate blueprint handling routing, business logic, and template rendering
-- All blueprints are registered in `app.py` with URL prefixes (e.g., `/purchases`, `/medicines`)
+- All blueprints are registered in `app/__init__.py` with URL prefixes (e.g., `/purchases`, `/medicines`)
 - Application factory pattern used in `create_app()` function
 
 ### JSON Database Layer
 - **Location**: `data/` directory contains all JSON database files
-- **Management**: `utils/database.py` provides centralized database operations
+- **Management**: `app/utils/database/` package provides modular database operations using repository pattern
 - **Key Pattern**: All database operations use read-modify-write pattern with file locking considerations
 - **Transaction IDs**: Most entities use string IDs like '01', '02' for consistency
 - **Files**: users.json, medicines.json, patients.json, doctors.json, suppliers.json, departments.json, stores.json, purchases.json, consumption.json, history.json, transfers.json
 - **Critical Entities**: Main Department (ID='01') and Main Store (ID='01') are system-protected and auto-recreated if missing via `ensure_main_entities()`
+
+**Database Package Structure** (`app/utils/database/`):
+```
+app/utils/database/
+├── __init__.py           # Re-exports all functions (backward compatible)
+├── base.py               # Core utilities (load, save, generate_id, init_database)
+├── repository.py         # Abstract base class and QueryBuilder
+├── users.py              # User management (17 functions)
+├── medicines.py          # Medicine operations (5 functions)
+├── patients.py           # Patient operations (4 functions)
+├── suppliers.py          # Supplier operations (4 functions)
+├── departments.py        # Department operations (5 functions)
+├── stores.py             # Store operations (7 functions)
+├── purchases.py          # Purchase operations (4 functions)
+├── consumption.py        # Consumption operations (9 functions)
+├── transfers.py          # Transfer operations (6 functions)
+└── activity.py           # Logging & history (3 functions)
+```
+
+**Data Models Package** (`app/utils/models/`):
+- Provides typed dataclass models for each entity (User, Medicine, Patient, etc.)
+- Each model has `to_dict()` and `from_dict()` methods for serialization
+- Use for type hints and validation in new code
+
+**Backward Compatibility**:
+- All existing imports continue to work: `from app.utils.database import get_medicines`
+- New explicit imports also available: `from app.utils.database.medicines import get_medicines`
 
 ### Session-Based Authentication
 - Flask-Session with filesystem storage
@@ -78,7 +117,7 @@ The application uses Flask blueprints for modular separation (`blueprints/` dire
   - `@admin_required` - Admin role only
   - `@department_user_required` - Department user role only
   - `@admin_or_department_user_required` - Either role
-- All decorators in `utils/helpers.py`
+- All decorators in `app/utils/helpers.py`
 - Session data stored in `flask_session/` directory
 - Default credentials:
   - Admin: username=`admin`, password=`@Xx123456789xX@`
@@ -141,10 +180,12 @@ When Byterover MCP tools are available, follow these strict workflows:
 - File upload security: Images validated via Pillow, uploads stored in `uploads/` directory
 
 ### Testing Approach
-- Test files follow `test_*.py` naming convention at project root
+- Test files follow `test_*.py` naming convention in `tests/` directory
+- Pytest configuration in `pytest.ini` with markers for categorizing tests
 - Available tests focus on:
   - Delete functionality and data integrity
   - Store-department relationship and cascading
+- Fixtures available in `tests/conftest.py` for app, client, and authenticated_client
 - Playwright tests may require separate setup: `pip install playwright && playwright install`
 
 ### Common Patterns
@@ -154,25 +195,50 @@ When Byterover MCP tools are available, follow these strict workflows:
 - **Validation**: Frontend (HTML5 + JavaScript) + backend validation patterns
 - **Blueprints**: Each module exports `<module_name>_bp` blueprint (e.g., `purchases_bp`, `medicines_bp`)
 - **Templates**: Module-specific templates in `templates/<module_name>/` subdirectories
-- **Database operations**: Use helper functions from `utils/database.py` (e.g., `get_purchases()`, `save_purchase()`, `update_purchase()`, `delete_purchase()`)
-- **Activity logging**: Use `log_activity(user_id, action, details)` for audit trail
+- **Database operations**: Use helper functions from `app/utils/database/` package (e.g., `get_purchases()`, `save_purchase()`, `update_purchase()`, `delete_purchase()`)
+  - Backward compatible: `from app.utils.database import get_medicines`
+  - Explicit imports: `from app.utils.database.medicines import get_medicines`
+- **Activity logging**: Use `log_activity(action, entity_type, entity_id, details)` for audit trail
 
 ### Directory Structure
 ```
 ALORFMEDZ/
-├── app.py                  # Main application entry point (create_app factory)
-├── wsgi.py                 # WSGI entry point for production
-├── config.py               # Configuration settings
-├── requirements.txt        # Python dependencies
-├── Dockerfile              # Docker configuration
-├── blueprints/             # Flask blueprints (modules)
+├── app/                    # Main application package
+│   ├── __init__.py        # Application factory (create_app)
+│   ├── config.py          # Configuration classes
+│   ├── blueprints/        # Flask blueprints (modules)
+│   │   ├── auth.py
+│   │   ├── dashboard.py
+│   │   ├── medicines.py
+│   │   └── ...
+│   └── utils/             # Utility functions and helpers
+│       ├── database/      # Database layer (repository pattern)
+│       │   ├── __init__.py
+│       │   ├── base.py
+│       │   ├── users.py
+│       │   ├── medicines.py
+│       │   └── ...
+│       ├── models/        # Dataclass models for entities
+│       │   ├── __init__.py
+│       │   ├── user.py
+│       │   └── ...
+│       ├── helpers.py     # Helper decorators
+│       └── ...
+├── tests/                  # Test suite
+│   ├── __init__.py
+│   ├── conftest.py        # Pytest fixtures
+│   └── test_*.py          # Test files
 ├── templates/              # Jinja2 HTML templates
 ├── static/                 # CSS, JS, images, uploads
-├── utils/                  # Utility functions and helpers
 ├── data/                   # JSON database files (created on init)
 ├── backups/                # System backups (created on use)
 ├── uploads/                # User uploaded files (created on use)
 ├── flask_session/          # Session storage (created on init)
+├── app.py                  # Entry point (thin wrapper)
+├── wsgi.py                 # WSGI entry point for production
+├── pytest.ini              # Pytest configuration
+├── requirements.txt        # Python dependencies
+├── Dockerfile              # Docker configuration
 └── scripts/                # Sample data generators
 ```
 

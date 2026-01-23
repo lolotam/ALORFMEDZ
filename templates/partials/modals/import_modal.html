@@ -1,0 +1,83 @@
+<!-- Reusable Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-upload"></i>
+                    {% block import_title %}Import Data{% endblock %}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="importForm" method="POST" enctype="multipart/form-data" action="{% block import_action %}{{ request.url }}{% endblock %}">
+                    {% block import_fields %}
+                    <div class="mb-3">
+                        <label for="csvFile" class="form-label">Select CSV File</label>
+                        <input type="file" class="form-control" id="csvFile" name="csv_file" accept=".csv" required>
+                        <div class="form-text">
+                            Please use the template format.
+                            {% block import_template_link %}
+                            <a href="#" onclick="downloadTemplate()">Download template</a>
+                            {% endblock %}
+                        </div>
+                    </div>
+                    {% endblock %}
+                </form>
+                {% block import_info %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Instructions:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Download the CSV template</li>
+                        <li>Fill in your data following the format</li>
+                        <li>Upload the completed CSV file</li>
+                    </ul>
+                </div>
+                {% endblock %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="submit" form="importForm" class="btn btn-primary" id="importBtn">
+                    <i class="bi bi-upload"></i> Import
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block import_scripts %}
+<script>
+/**
+ * Initialize import modal functionality
+ */
+function initImportModal() {
+    const importForm = document.getElementById('importForm');
+    const importBtn = document.getElementById('importBtn');
+
+    if (importForm && importBtn) {
+        importForm.addEventListener('submit', function(e) {
+            // Show loading state
+            importBtn.disabled = true;
+            importBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Importing...';
+        });
+    }
+}
+
+/**
+ * Download template CSV
+ */
+function downloadTemplate() {
+    {% block download_template_action %}
+    window.location.href = '/medicines/download-template';
+    {% endblock %}
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initImportModal();
+});
+</script>
+{% endblock %}

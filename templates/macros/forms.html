@@ -1,0 +1,271 @@
+{# Reusable Form Macros #}
+
+{% macro text_field(label, name, value='', placeholder='', required=False, help_text='', type='text', id=None) %}
+<div class="mb-3">
+    <label for="{{ id or name }}" class="form-label">
+        {{ label }}
+        {% if required %}<span class="text-danger">*</span>{% endif %}
+    </label>
+    <input type="{{ type }}"
+           class="form-control"
+           id="{{ id or name }}"
+           name="{{ name }}"
+           value="{{ value }}"
+           placeholder="{{ placeholder }}"
+           {% if required %}required{% endif %}>
+    {% if help_text %}
+    <div class="form-text">{{ help_text }}</div>
+    {% endif %}
+    <div class="invalid-feedback">
+        Please provide {{ label|lower }}.
+    </div>
+</div>
+{% endmacro %}
+
+{% macro select_field(label, name, options, value='', required=False, help_text='', id=None, placeholder='Select an option') %}
+<div class="mb-3">
+    <label for="{{ id or name }}" class="form-label">
+        {{ label }}
+        {% if required %}<span class="text-danger">*</span>{% endif %}
+    </label>
+    <select class="form-select"
+            id="{{ id or name }}"
+            name="{{ name }}"
+            {% if required %}required{% endif %}>
+        <option value="">{{ placeholder }}</option>
+        {% for option in options %}
+        <option value="{{ option.value if option.value is defined else option.id if option.id is defined else option }}"
+                {% if value == (option.value if option.value is defined else option.id if option.id is defined else option) %}selected{% endif %}>
+            {{ option.text if option.text is defined else option.name if option.name is defined else option }}
+        </option>
+        {% endfor %}
+    </select>
+    {% if help_text %}
+    <div class="form-text">{{ help_text }}</div>
+    {% endif %}
+    <div class="invalid-feedback">
+        Please select {{ label|lower }}.
+    </div>
+</div>
+{% endmacro %}
+
+{% macro textarea_field(label, name, value='', placeholder='', required=False, help_text='', rows=4, id=None) %}
+<div class="mb-3">
+    <label for="{{ id or name }}" class="form-label">
+        {{ label }}
+        {% if required %}<span class="text-danger">*</span>{% endif %}
+    </label>
+    <textarea class="form-control"
+              id="{{ id or name }}"
+              name="{{ name }}"
+              rows="{{ rows }}"
+              placeholder="{{ placeholder }}"
+              {% if required %}required{% endif %}>{{ value }}</textarea>
+    {% if help_text %}
+    <div class="form-text">{{ help_text }}</div>
+    {% endif %}
+    <div class="invalid-feedback">
+        Please provide {{ label|lower }}.
+    </div>
+</div>
+{% endmacro %}
+
+{% macro number_field(label, name, value='', min=None, max=None, step=None, required=False, help_text='', id=None) %}
+<div class="mb-3">
+    <label for="{{ id or name }}" class="form-label">
+        {{ label }}
+        {% if required %}<span class="text-danger">*</span>{% endif %}
+    </label>
+    <input type="number"
+           class="form-control"
+           id="{{ id or name }}"
+           name="{{ name }}"
+           value="{{ value }}"
+           {% if min is not none %}min="{{ min }}"{% endif %}
+           {% if max is not None %}max="{{ max }}"{% endif %}
+           {% if step is not none %}step="{{ step }}"{% endif %}
+           {% if required %}required{% endif %}>
+    {% if help_text %}
+    <div class="form-text">{{ help_text }}</div>
+    {% endif %}
+    <div class="invalid-feedback">
+        Please provide a valid {{ label|lower }}.
+    </div>
+</div>
+{% endmacro %}
+
+{% macro date_field(label, name, value='', required=False, help_text='', id=None) %}
+<div class="mb-3">
+    <label for="{{ id or name }}" class="form-label">
+        {{ label }}
+        {% if required %}<span class="text-danger">*</span>{% endif %}
+    </label>
+    <input type="date"
+           class="form-control"
+           id="{{ id or name }}"
+           name="{{ name }}"
+           value="{{ value }}"
+           {% if required %}required{% endif %}>
+    {% if help_text %}
+    <div class="form-text">{{ help_text }}</div>
+    {% endif %}
+    <div class="invalid-feedback">
+        Please provide {{ label|lower }}.
+    </div>
+</div>
+{% endmacro %}
+
+{% macro file_field(label, name, required=False, help_text='', accept=None, id=None) %}
+<div class="mb-3">
+    <label for="{{ id or name }}" class="form-label">
+        {{ label }}
+        {% if required %}<span class="text-danger">*</span>{% endif %}
+    </label>
+    <input type="file"
+           class="form-control"
+           id="{{ id or name }}"
+           name="{{ name }}"
+           {% if required %}required{% endif %}
+           {% if accept %}accept="{{ accept }}"{% endif %}>
+    {% if help_text %}
+    <div class="form-text">{{ help_text }}</div>
+    {% endif %}
+    <div class="invalid-feedback">
+        Please provide {{ label|lower }}.
+    </div>
+</div>
+{% endmacro %}
+
+{% macro checkbox_field(label, name, checked=False, help_text='', id=None) %}
+<div class="mb-3">
+    <div class="form-check">
+        <input class="form-check-input"
+               type="checkbox"
+               id="{{ id or name }}"
+               name="{{ name }}"
+               {% if checked %}checked{% endif %}>
+        <label class="form-check-label" for="{{ id or name }}">
+            {{ label }}
+        </label>
+        {% if help_text %}
+        <div class="form-text">{{ help_text }}</div>
+        {% endif %}
+    </div>
+</div>
+{% endmacro %}
+
+{% macro radio_field(label, name, options, value='', help_text='', id=None) %}
+<div class="mb-3">
+    <label class="form-label">{{ label }}</label>
+    {% for option in options %}
+    <div class="form-check">
+        <input class="form-check-input"
+               type="radio"
+               id="{{ id or name }}_{{ loop.index }}"
+               name="{{ name }}"
+               value="{{ option.value if option.value is defined else option.id if option.id is defined else option }}"
+               {% if value == (option.value if option.value is defined else option.id if option.id is defined else option) %}checked{% endif %}>
+        <label class="form-check-label" for="{{ id or name }}_{{ loop.index }}">
+            {{ option.text if option.text is defined else option.name if option.name is defined else option }}
+        </label>
+    </div>
+    {% endfor %}
+    {% if help_text %}
+    <div class="form-text">{{ help_text }}</div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% macro form_row(fields) %}
+<div class="row">
+    {% for field in fields %}
+    <div class="{{ field.col_class|default('col-md-6') }}">
+        {{ field|safe }}
+    </div>
+    {% endfor %}
+</div>
+{% endmacro %}
+
+{% macro submit_button(text='Submit', icon='check-circle', color='primary') %}
+<button type="submit" class="btn btn-{{ color }}">
+    <i class="bi bi-{{ icon }}"></i> {{ text }}
+</button>
+{% endmacro %}
+
+{% macro cancel_button(url, text='Cancel', icon='x-circle') %}
+<a href="{{ url }}" class="btn btn-outline-secondary">
+    <i class="bi bi-{{ icon }}"></i> {{ text }}
+</a>
+{% endmacro %}
+
+{% macro action_buttons(submit_text='Save', submit_icon='check-circle', cancel_url='#', cancel_text='Cancel', cancel_icon='arrow-left') %}
+<div class="mt-4">
+    <div class="d-flex gap-2">
+        {{ submit_button(submit_text, submit_icon, 'primary') }}
+        {{ cancel_button(cancel_url, cancel_text, cancel_icon) }}
+    </div>
+</div>
+{% endmacro %}
+
+{# Medicine-specific form macro #}
+{% macro medicine_form(medicine, suppliers, forms, action_url, submit_text='Save') %}
+<form method="POST" enctype="multipart/form-data" action="{{ action_url }}" novalidate>
+    {{ form_row([
+        text_field('Medicine Name', 'name', medicine.name if medicine else '', 'Enter medicine name', true, 'Required field', id='name'),
+        select_field('Supplier', 'supplier_id', suppliers, medicine.supplier_id if medicine else '', true, 'Select the supplier', id='supplier_id', placeholder='Select Supplier')
+    ]) }}
+
+    {{ form_row([
+        select_field('Form/Dosage', 'form_dosage', forms, medicine.form_dosage if medicine else '', false, 'Optional field', id='form_dosage', placeholder='Select Form/Dosage'),
+        number_field('Low Stock Limit', 'low_stock_limit', medicine.low_stock_limit if medicine else 0, 0, None, 1, true, 'Alert when stock reaches this level', id='low_stock_limit')
+    ]) }}
+
+    {{ form_row([
+        date_field('Expiry Date', 'expiry_date', medicine.expiry_date if medicine and medicine.expiry_date else '', false, 'Optional: Medicine expiration date', id='expiry_date'),
+        text_field('Batch Number', 'batch_number', medicine.batch_number if medicine else '', 'e.g., BATCH001', false, 'Optional: Manufacturing batch/lot number', id='batch_number')
+    ]) }}
+
+    {{ form_row([
+        text_field('Barcode', 'barcode_number', medicine.barcode_number if medicine else '', '', false, 'Optional: Product barcode', id='barcode_number'),
+        text_field('Description', 'description', medicine.description if medicine else '', '', false, 'Optional: Additional description', id='description')
+    ]) }}
+
+    {{ textarea_field('Notes', 'notes', medicine.notes if medicine else '', 'Enter any additional notes', false, 'Optional: Internal notes about the medicine', 3, id='notes') }}
+
+    {% if medicine %}
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Current Photo{% if medicine.photos and medicine.photos|length > 1 %}s{% endif %}</h6>
+                </div>
+                <div class="card-body">
+                    {% if medicine.photos and medicine.photos|length > 0 %}
+                        {% if medicine.photos|length == 1 %}
+                            <img src="{{ medicine.photos[0].url }}" alt="Medicine photo" class="img-fluid rounded">
+                        {% else %}
+                            <div class="row">
+                                {% for photo in medicine.photos %}
+                                <div class="col-6 mb-2">
+                                    <img src="{{ photo.thumbnail_url or photo.url }}" alt="Medicine photo" class="img-fluid rounded">
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted">No photos uploaded</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            {{ file_field('Update Photo', 'photo', false, 'Upload a new photo (optional). Leave empty to keep current photo.', 'image/*', id='photo') }}
+        </div>
+    </div>
+    {% else %}
+    {{ file_field('Photo', 'photo', false, 'Upload a photo (optional)', 'image/*', id='photo') }}
+    {% endif %}
+
+    {{ action_buttons(submit_text, 'save', url_for('medicines.index'), 'Cancel', 'arrow-left') }}
+</form>
+{% endmacro %}

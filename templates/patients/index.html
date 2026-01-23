@@ -115,42 +115,9 @@
     </div>
 </div>
 
-<!-- Import Modal -->
-<div class="modal fade" id="importModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Import Patients</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="importForm" method="POST" enctype="multipart/form-data" action="{{ url_for('patients.index') }}">
-                    <div class="mb-3">
-                        <label for="csvFile" class="form-label">Select CSV File</label>
-                        <input type="file" class="form-control" id="csvFile" name="csv_file" accept=".csv" required>
-                        <div class="form-text">
-                            Please use the template format. <a href="{{ url_for('patients.download_template') }}">Download template</a>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" form="importForm" class="btn btn-primary">Import</button>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-// Initialize search functionality
-document.addEventListener('DOMContentLoaded', function() {
-    searchTable('searchInput', 'patientsTable');
-
-    // Initialize bulk delete functionality
-    initBulkDelete('patientsTable', 'patients', '/patients/bulk-delete');
-});
-</script>
+{{ super() }}
+<script src="{{ url_for('static', filename='js/modules/patients/index.js') }}"></script>
 {% endblock %}

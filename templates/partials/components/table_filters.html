@@ -1,0 +1,96 @@
+<!-- Reusable Table Filters Component -->
+<div class="row mb-3">
+    <!-- Search Input -->
+    <div class="{% block search_col_class %}col-md-6{% endblock %}">
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="bi bi-search"></i>
+            </span>
+            <input type="text"
+                   class="form-control"
+                   id="{% block search_input_id %}searchInput{% endblock %}"
+                   placeholder="{% block search_placeholder %}Search...{% endblock %}">
+        </div>
+    </div>
+
+    <!-- Additional Filters -->
+    {% block additional_filters %}
+    <div class="col-md-3">
+        <select class="form-select" id="{% block filter1_id %}filter1{% endblock %}">
+            <option value="">{% block filter1_label %}All{% endblock %}</option>
+            {% block filter1_options %}{% endblock %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" id="{% block filter2_id %}filter2{% endblock %}">
+            <option value="">{% block filter2_label %}All{% endblock %}</option>
+            {% block filter2_options %}{% endblock %}
+        </select>
+    </div>
+    {% endblock %}
+
+    <!-- Clear Filters Button -->
+    {% block clear_button %}
+    <div class="col-12 mt-2">
+        <button class="btn btn-outline-secondary btn-sm" onclick="{% block clear_function %}clearFilters(){% endblock %}">
+            <i class="bi bi-x-circle"></i> Clear Filters
+        </button>
+    </div>
+    {% endblock %}
+</div>
+
+{% block filter_scripts %}
+<script>
+/**
+ * Default clear filters function
+ * Override this in your page-specific scripts
+ */
+function clearFilters() {
+    // Clear search input
+    const searchInput = document.getElementById('{% block search_input_id %}searchInput{% endblock %}');
+    if (searchInput) {
+        searchInput.value = '';
+    }
+
+    // Clear select filters
+    {% block clear_filter_code %}
+    const filter1 = document.getElementById('{% block filter1_id %}filter1{% endblock %}');
+    const filter2 = document.getElementById('{% block filter2_id %}filter2{% endblock %}');
+    if (filter1) filter1.value = '';
+    if (filter2) filter2.value = '';
+    {% endblock %}
+
+    // Trigger filter function
+    {% block trigger_filter_function %}
+    if (typeof filterTable === 'function') {
+        filterTable();
+    }
+    {% endblock %}
+}
+
+/**
+ * Initialize filters
+ */
+function initTableFilters() {
+    const searchInput = document.getElementById('{% block search_input_id %}searchInput{% endblock %}');
+    const filter1 = document.getElementById('{% block filter1_id %}filter1{% endblock %}');
+    const filter2 = document.getElementById('{% block filter2_id %}filter2{% endblock %}');
+
+    // Add event listeners
+    if (searchInput) {
+        searchInput.addEventListener('{% block search_event %}input{% endblock %}', {% block search_function %}filterTable{% endblock %});
+    }
+    if (filter1) {
+        filter1.addEventListener('change', {% block filter1_function %}filterTable{% endblock %});
+    }
+    if (filter2) {
+        filter2.addEventListener('change', {% block filter2_function %}filterTable{% endblock %});
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initTableFilters();
+});
+</script>
+{% endblock %}

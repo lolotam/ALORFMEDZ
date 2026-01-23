@@ -1,5 +1,8 @@
 # Hospital Pharmacy Management System
 
+[![Tests](https://github.com/your-org/ALORFMEDZ/actions/workflows/test.yml/badge.svg)](https://github.com/your-org/ALORFMEDZ/actions/workflows/test.yml)
+![Coverage](https://img.shields.io/badge/coverage-70%25-brightgreen)
+
 A comprehensive web-based pharmacy management system for hospitals, built with Flask and Bootstrap 5. This system provides complete inventory management, patient tracking, and advanced reporting capabilities.
 
 ## Features
@@ -165,6 +168,59 @@ The system includes API endpoints for integration:
 - `/api/medicines` - Medicine data
 - `/api/inventory` - Stock levels
 - `/api/patients` - Patient information
+
+## Testing
+
+This project includes a comprehensive testing infrastructure with unit tests, integration tests, and coverage reporting.
+
+### Running Tests
+
+Run all tests:
+```bash
+pytest
+```
+
+Run tests with coverage:
+```bash
+pytest --cov=app --cov-report=html --cov-report=term-missing
+```
+
+Run unit tests only:
+```bash
+pytest -m unit
+```
+
+Run integration tests only:
+```bash
+pytest -m integration
+```
+
+Run tests in parallel (faster):
+```bash
+pytest -n auto
+```
+
+Run specific test file:
+```bash
+pytest tests/unit/test_decorators.py
+pytest tests/integration/test_api_endpoints.py
+```
+
+Run with coverage and fail under threshold:
+```bash
+pytest --cov=app --cov-fail-under=70
+```
+
+### Coverage Reports
+
+After running tests with coverage, open the HTML report:
+```bash
+open htmlcov/index.html  # macOS
+xdg-open htmlcov/index.html  # Linux
+start htmlcov/index.html  # Windows
+```
+
+Coverage configuration is in `.coveragerc`.
 
 ## Backup & Recovery
 

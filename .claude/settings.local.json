@@ -5,7 +5,8 @@
       "Bash(git add:*)",
       "WebFetch(domain:alorfmedz.com)",
       "mcp__playwright-mcp__browser_navigate",
-      "mcp__playwright-mcp__browser_fill_form"
+      "mcp__playwright-mcp__browser_fill_form",
+      "mcp__ssh-xsellpoint-mcp__exec"
     ],
     "deny": [],
     "ask": []

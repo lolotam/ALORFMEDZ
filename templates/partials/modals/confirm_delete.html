@@ -1,0 +1,112 @@
+<!-- Reusable Delete Confirmation Modal -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle text-danger"></i>
+                    Confirm Delete
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmDeleteMessage">Are you sure you want to delete this item?</p>
+                <p class="text-muted small">
+                    <i class="bi bi-info-circle"></i>
+                    This action cannot be undone.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * Initialize confirm delete modal
+ * @param {string} modalId - ID of the confirm delete modal
+ * @param {string} deleteUrl - URL to call when confirmed
+ * @param {function} onSuccess - Callback after successful delete
+ */
+function initConfirmDelete(modalId = 'confirmDeleteModal', deleteUrl = '', onSuccess = null) {
+    const modal = document.getElementById(modalId);
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', async function() {
+            if (!deleteUrl) {
+                console.error('Delete URL not provided');
+                return;
+            }
+
+            // Show loading state
+            const originalText = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Deleting...';
+
+            try {
+                const response = await fetch(deleteUrl, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Hide modal
+                    const bsModal = bootstrap.Modal.getInstance(modal);
+                    bsModal.hide();
+
+                    // Show success message
+                    showAlert('success', result.message || 'Item deleted successfully.');
+
+                    // Call success callback
+                    if (onSuccess) {
+                        onSuccess(result);
+                    } else {
+                        // Default: reload page
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                } else {
+                    throw new Error(result.message || 'Delete failed');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                showAlert('danger', 'Error: ' + error.message);
+                this.disabled = false;
+                this.innerHTML = originalText;
+            }
+        });
+    }
+}
+
+/**
+ * Show confirm delete modal
+ * @param {string} message - Custom message to display
+ * @param {string} deleteUrl - URL to call when confirmed
+ * @param {function} onSuccess - Callback after successful delete
+ */
+function showConfirmDelete(message = 'Are you sure you want to delete this item?', deleteUrl = '', onSuccess = null) {
+    const messageEl = document.getElementById('confirmDeleteMessage');
+    if (messageEl) {
+        messageEl.textContent = message;
+    }
+
+    initConfirmDelete('confirmDeleteModal', deleteUrl, onSuccess);
+
+    const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+    modal.show();
+}
+</script>

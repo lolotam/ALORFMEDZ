@@ -1,0 +1,100 @@
+<!-- Reusable Bulk Actions Component -->
+<div class="d-flex justify-content-between align-items-center mb-3" id="bulkActions" style="display: none;">
+    <div>
+        <span class="badge bg-info" id="selectedCount">0 selected</span>
+    </div>
+    <div>
+        {% block bulk_action_buttons %}
+        <button class="btn btn-danger btn-sm" id="bulkDeleteBtn">
+            <i class="bi bi-trash"></i> Delete Selected
+        </button>
+        {% endblock %}
+    </div>
+</div>
+
+{% block bulk_scripts %}
+<script>
+/**
+ * Update bulk actions display
+ * @param {number} count - Number of selected items
+ */
+function updateBulkActions(count) {
+    const bulkActions = document.getElementById('bulkActions');
+    const selectedCount = document.getElementById('selectedCount');
+
+    if (bulkActions && selectedCount) {
+        if (count > 0) {
+            bulkActions.style.display = 'flex';
+            selectedCount.textContent = `${count} selected`;
+        } else {
+            bulkActions.style.display = 'none';
+        }
+    }
+}
+
+/**
+ * Initialize bulk select functionality
+ * @param {string} tableId - ID of the table
+ * @param {function} onSelectionChange - Callback when selection changes
+ */
+function initBulkSelect(tableId, onSelectionChange = null) {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+
+    const selectAll = table.querySelector('#selectAll');
+    const individualChecks = table.querySelectorAll('.bulk-select');
+
+    // Select all checkbox
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            individualChecks.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateSelection();
+        });
+    }
+
+    // Individual checkboxes
+    individualChecks.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateSelectAll();
+            updateSelection();
+        });
+    });
+
+    function updateSelectAll() {
+        if (!selectAll) return;
+
+        const checkedCount = table.querySelectorAll('.bulk-select:checked').length;
+        const totalCount = individualChecks.length;
+
+        if (checkedCount === 0) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+        } else if (checkedCount === totalCount) {
+            selectAll.checked = true;
+            selectAll.indeterminate = false;
+        } else {
+            selectAll.checked = false;
+            selectAll.indeterminate = true;
+        }
+    }
+
+    function updateSelection() {
+        const checkedCount = table.querySelectorAll('.bulk-select:checked').length;
+        updateBulkActions(checkedCount);
+
+        if (onSelectionChange) {
+            onSelectionChange(checkedCount);
+        }
+    }
+
+    // Return functions for manual control
+    return {
+        updateSelectAll,
+        updateSelection,
+        getSelectedIds: () => Array.from(table.querySelectorAll('.bulk-select:checked')).map(cb => cb.value)
+    };
+}
+</script>
+{% endblock %}

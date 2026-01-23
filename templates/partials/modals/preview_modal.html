@@ -1,0 +1,116 @@
+<!-- Reusable Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalTitle">
+                    <i class="bi bi-eye"></i>
+                    {% block preview_title %}Preview{% endblock %}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="previewModalContent">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading...</p>
+                </div>
+            </div>
+            <div class="modal-footer" id="previewModalFooter">
+                {% block preview_footer %}
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Close
+                </button>
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block preview_scripts %}
+<script>
+/**
+ * Show preview modal with content
+ * @param {string} title - Modal title
+ * @param {string} content - HTML content to display
+ * @param {function} onLoad - Callback after modal is shown
+ */
+function showPreviewModal(title, content, onLoad = null) {
+    const modal = document.getElementById('previewModal');
+    const titleEl = document.getElementById('previewModalTitle');
+    const contentEl = document.getElementById('previewModalContent');
+
+    if (titleEl) {
+        titleEl.innerHTML = `<i class="bi bi-eye"></i> ${title}`;
+    }
+
+    if (contentEl) {
+        contentEl.innerHTML = content;
+    }
+
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+
+    if (onLoad) {
+        onLoad();
+    }
+}
+
+/**
+ * Load preview content from URL
+ * @param {string} title - Modal title
+ * @param {string} url - URL to fetch content from
+ * @param {function} onLoad - Callback after load
+ */
+async function loadPreviewFromUrl(title, url, onLoad = null) {
+    const modal = document.getElementById('previewModal');
+    const titleEl = document.getElementById('previewModalTitle');
+    const contentEl = document.getElementById('previewModalContent');
+
+    if (titleEl) {
+        titleEl.innerHTML = `<i class="bi bi-eye"></i> ${title}`;
+    }
+
+    if (contentEl) {
+        contentEl.innerHTML = `
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading...</p>
+            </div>
+        `;
+    }
+
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.success) {
+            if (contentEl) {
+                contentEl.innerHTML = data.content || 'No content available.';
+            }
+            if (onLoad) {
+                onLoad(data);
+            }
+        } else {
+            throw new Error(data.message || 'Failed to load preview');
+        }
+    } catch (error) {
+        console.error('Preview error:', error);
+        if (contentEl) {
+            contentEl.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Error loading preview: ${error.message}
+                </div>
+            `;
+        }
+    }
+}
+</script>
+{% endblock %}

@@ -16,7 +16,7 @@
                 <i class="bi bi-people display-4 text-primary mb-3"></i>
                 <h5 class="card-title">User Management</h5>
                 <p class="card-text">Manage user accounts, roles, and permissions for the pharmacy system.</p>
-                <a href="{{ url_for('settings.users') }}" class="btn btn-primary">
+                <a href="{{ url_for('users.index') }}" class="btn btn-primary">
                     <i class="bi bi-person-gear"></i> Manage Users
                 </a>
             </div>
@@ -89,7 +89,7 @@
                 <h5 class="card-title">Security</h5>
                 <p class="card-text">Configure security settings, backup options, and audit logs.</p>
                 {% if session.role == 'admin' %}
-                <a href="{{ url_for('settings.security') }}" class="btn btn-danger">
+                <a href="{{ url_for('security.index') }}" class="btn btn-danger">
                     <i class="bi bi-shield-lock"></i> Security Settings
                 </a>
                 {% else %}
@@ -113,35 +113,35 @@
                             <i class="bi bi-file-earmark-spreadsheet"></i> CSV Backup
                         </button>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('settings.backup_full') }}">
+                            <li><a class="dropdown-item" href="{{ url_for('backup.backup_full') }}">
                                 <i class="bi bi-download"></i> Full System CSV Backup
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><h6 class="dropdown-header">Individual CSV Files</h6></li>
-                            <li><a class="dropdown-item" href="{{ url_for('settings.backup_file', file_type='medicines') }}">
+                            <li><a class="dropdown-item" href="{{ url_for('backup.backup_file', file_type='medicines') }}">
                                 <i class="bi bi-capsule"></i> Medicines
                             </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('settings.backup_file', file_type='patients') }}">
+                            <li><a class="dropdown-item" href="{{ url_for('backup.backup_file', file_type='patients') }}">
                                 <i class="bi bi-person"></i> Patients
                             </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('settings.backup_file', file_type='suppliers') }}">
+                            <li><a class="dropdown-item" href="{{ url_for('backup.backup_file', file_type='suppliers') }}">
                                 <i class="bi bi-truck"></i> Suppliers
                             </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('settings.backup_file', file_type='doctors') }}">
+                            <li><a class="dropdown-item" href="{{ url_for('backup.backup_file', file_type='doctors') }}">
                                 <i class="bi bi-person-badge"></i> Doctors
                             </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('settings.backup_file', file_type='purchases') }}">
+                            <li><a class="dropdown-item" href="{{ url_for('backup.backup_file', file_type='purchases') }}">
                                 <i class="bi bi-cart"></i> Purchases
                             </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('settings.backup_file', file_type='consumption') }}">
+                            <li><a class="dropdown-item" href="{{ url_for('backup.backup_file', file_type='consumption') }}">
                                 <i class="bi bi-clipboard-data"></i> Consumption
                             </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('settings.backup_file', file_type='transfers') }}">
+                            <li><a class="dropdown-item" href="{{ url_for('backup.backup_file', file_type='transfers') }}">
                                 <i class="bi bi-arrow-left-right"></i> Transfers
                             </a></li>
                         </ul>
                     </div>
-                    <a href="{{ url_for('settings.restore') }}" class="btn btn-outline-dark">
+                    <a href="{{ url_for('backup.restore') }}" class="btn btn-outline-dark">
                         <i class="bi bi-upload"></i> Restore
                     </a>
                 </div>
