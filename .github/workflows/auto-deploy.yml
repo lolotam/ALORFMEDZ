@@ -25,8 +25,7 @@ jobs:
     - name: Run syntax checks
       run: |
         python -m py_compile app.py
-        python -m py_compile utils/database.py
-        python -m py_compile utils/upload.py
+        python -m compileall app/
 
     - name: Check import structure
       run: |
