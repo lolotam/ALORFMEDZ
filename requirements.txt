@@ -24,3 +24,4 @@ Flask-Caching==2.0.2
 
 # Security
 bcrypt==4.0.1
+psutil==5.9.8
