@@ -60,7 +60,7 @@ def create_app(config_name=None):
                 static_folder='../static')
 
     # Fix for mixed content issues (HTTPS proxy)
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
     # Load configuration
     config_class = get_config(config_name)
