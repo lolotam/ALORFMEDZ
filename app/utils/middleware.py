@@ -57,7 +57,7 @@ def setup_middleware(app):
             response.headers['X-XSS-Protection'] = '1; mode=block'
 
             # Content Security Policy
-            response.headers['Content-Security-Policy'] = "default-src 'self'"
+            # response.headers['Content-Security-Policy'] = "default-src 'self'"
 
             # Referrer Policy
             response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
