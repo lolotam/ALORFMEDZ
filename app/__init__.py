@@ -7,6 +7,7 @@ from flask import Flask, render_template, session, redirect, url_for, send_from_
 from flask_session import Session
 import os
 from datetime import datetime
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Import configuration
 from .config import get_config
@@ -57,6 +58,9 @@ def create_app(config_name=None):
     app = Flask(__name__,
                 template_folder='../templates',
                 static_folder='../static')
+
+    # Fix for mixed content issues (HTTPS proxy)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     # Load configuration
     config_class = get_config(config_name)
