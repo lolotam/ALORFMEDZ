@@ -3,16 +3,17 @@
 {% block title %}Login - ALORF HOSPITAL Pharmacy Management System{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
+<div class="row justify-content-center align-items-center" style="min-height: 80vh;">
     <div class="col-md-6 col-lg-4">
         <div class="card shadow">
             <div class="card-body">
                 <div class="text-center mb-4">
-                    <img src="{{ url_for('static', filename='images/favicon.ico') }}" alt="Medical Logo" style="width: 80px; height: 80px;">
+                    <img src="{{ url_for('static', filename='images/favicon.ico') }}" alt="Medical Logo"
+                        style="width: 80px; height: 80px;">
                     <h3 class="card-title mt-2">ALORF HOSPITAL</h3>
                     <p class="text-muted">Pharmacy Management System</p>
                 </div>
-                
+
                 <form method="POST">
                     <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
                     <div class="mb-3">
@@ -24,7 +25,7 @@
                             <input type="text" class="form-control" id="username" name="username" required>
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
                         <div class="input-group">
@@ -32,12 +33,13 @@
                                 <i class="bi bi-lock"></i>
                             </span>
                             <input type="password" class="form-control" id="password" name="password" required>
-                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password')">
+                            <button class="btn btn-outline-secondary" type="button"
+                                onclick="togglePassword('password')">
                                 <i class="bi bi-eye" id="password_icon"></i>
                             </button>
                         </div>
                     </div>
-                    
+
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-box-arrow-in-right"></i> Login
@@ -53,17 +55,17 @@
 
 {% block extra_js %}
 <script>
-function togglePassword(fieldId) {
-    const passwordField = document.getElementById(fieldId);
-    const passwordIcon = document.getElementById(fieldId + '_icon');
+    function togglePassword(fieldId) {
+        const passwordField = document.getElementById(fieldId);
+        const passwordIcon = document.getElementById(fieldId + '_icon');
 
-    if (passwordField.type === 'password') {
-        passwordField.type = 'text';
-        passwordIcon.className = 'bi bi-eye-slash';
-    } else {
-        passwordField.type = 'password';
-        passwordIcon.className = 'bi bi-eye';
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            passwordIcon.className = 'bi bi-eye-slash';
+        } else {
+            passwordField.type = 'password';
+            passwordIcon.className = 'bi bi-eye';
+        }
     }
-}
 </script>
 {% endblock %}
