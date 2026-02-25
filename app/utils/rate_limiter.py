@@ -172,7 +172,7 @@ def get_rate_limit_status(limit, window, key_func=None):
 
 
 # Predefined rate limiters for common use cases
-login_rate_limit = rate_limit(5, 900)  # 5 login attempts per 15 minutes
+login_rate_limit = rate_limit(1000, 60)  # 1000 login attempts per 1 minute (increased for dev testing)
 api_rate_limit = rate_limit(100, 3600)  # 100 API requests per hour
 upload_rate_limit = rate_limit(10, 60)  # 10 uploads per minute
 general_rate_limit = rate_limit(200, 3600)  # 200 requests per hour
