@@ -51,7 +51,8 @@ def setup_middleware(app):
             response.headers['X-Content-Type-Options'] = 'nosniff'
 
             # Frame Options
-            response.headers['X-Frame-Options'] = 'DENY'
+            # Commented out to allow embedding in other frames/projects for previews
+            # response.headers['X-Frame-Options'] = 'DENY'
 
             # XSS Protection
             response.headers['X-XSS-Protection'] = '1; mode=block'
