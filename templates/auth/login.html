@@ -10,6 +10,26 @@
         background-color: transparent !important;
     }
 
+    /* Fix footer to the bottom and style for video background */
+    footer {
+        position: fixed !important;
+        bottom: 0;
+        width: 100%;
+        background: transparent !important;
+        background-color: transparent !important;
+        margin-top: 0 !important;
+        color: #f8f9fa !important;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+        z-index: 10;
+        pointer-events: auto;
+        /* ensure link is clickable */
+    }
+
+    footer .text-muted,
+    footer a {
+        color: #f8f9fa !important;
+    }
+
     /* 3D and Animation Styles */
     @keyframes floating {
         0% {
