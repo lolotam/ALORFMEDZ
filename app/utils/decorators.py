@@ -18,7 +18,6 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
-            flash('Please log in to access this page.', 'warning')
             return redirect(url_for('auth.login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -29,7 +28,6 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
-            flash('Please log in to access this page.', 'warning')
             return redirect(url_for('auth.login'))
 
         if session.get('role') != 'admin':
@@ -45,7 +43,6 @@ def department_user_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
-            flash('Please log in to access this page.', 'warning')
             return redirect(url_for('auth.login'))
 
         if session.get('role') != 'department_user':
@@ -61,7 +58,6 @@ def admin_or_department_user_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
-            flash('Please log in to access this page.', 'warning')
             return redirect(url_for('auth.login'))
 
         if session.get('role') not in ['admin', 'department_user']:
@@ -78,7 +74,6 @@ def restrict_department_user_action(action_name):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             if 'user_id' not in session:
-                flash('Please log in to access this page.', 'warning')
                 return redirect(url_for('auth.login'))
 
             if session.get('role') == 'department_user':
