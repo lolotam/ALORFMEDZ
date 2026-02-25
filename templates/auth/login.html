@@ -102,7 +102,24 @@
         filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.1));
         animation: floating 4s ease-in-out infinite;
     }
+
+    .video-background {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        min-width: 100%;
+        min-height: 100%;
+        width: auto;
+        height: auto;
+        z-index: -100;
+        object-fit: cover;
+    }
 </style>
+
+<video autoplay muted loop playsinline class="video-background">
+    <source src="https://res.cloudinary.com/dnb3glmxm/video/upload/v1772053960/aLORFMEDZ_ijqe7h.webm" type="video/webm">
+    Your browser does not support the video tag.
+</video>
 <div class="row justify-content-center align-items-center login-container" style="min-height: 80vh;">
     <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
         <div class="card card-3d p-4 mx-auto" style="max-width: 500px;">
